@@ -15,7 +15,7 @@ OPTION 1: STANDARD ESCAPING (Try This First)
 Most DNS providers (Cloudflare, Google Domains, etc.)
 Copy the line below and paste into your DNS TXT record:
 
-{"v":1,"pk":"npub1tm2kg4mzmug7nsw7pvjkqglrr4npwj2rugaymp43prgcfg2cgwlscxmv77","relays":["wss://relay.damus.io","wss://relay.nostr.band","wss://nos.lol"],"blossom":[],"policy":{"min_relays":2}}
+{"v":1,"pk":"npub1tm2kg4mzmug7nsw7pvjkqglrr4npwj2rugaymp43prgcfg2cgwlscxmv77","relays":["wss://shu01.shugur.net","wss://shu02.shugur.net","wss://shu03.shugur.net","wss://shu04.shugur.net","wss://shu05.shugur.net","wss://relay.damus.io","wss://relay.nostr.band","wss://nos.lol"],"blossom":[],"policy":{"min_relays":2}}
 
 ======================================================================
 OPTION 2: DOUBLE ESCAPING (If Option 1 Doesn't Work)
@@ -24,7 +24,7 @@ OPTION 2: DOUBLE ESCAPING (If Option 1 Doesn't Work)
 Some DNS providers automatically unescape quotes.
 If Option 1 doesn't work, copy the line below instead:
 
-"{\"v\":1,\"pk\":\"npub1tm2kg4mzmug7nsw7pvjkqglrr4npwj2rugaymp43prgcfg2cgwlscxmv77\",\"relays\":[\"wss://relay.damus.io\",\"wss://relay.nostr.band\",\"wss://nos.lol\"],\"blossom\":[],\"policy\":{\"min_relays\":2}}"
+"{\"v\":1,\"pk\":\"npub1tm2kg4mzmug7nsw7pvjkqglrr4npwj2rugaymp43prgcfg2cgwlscxmv77\",\"relays\":[\"wss://shu01.shugur.net\",\"wss://shu02.shugur.net\",\"wss://shu03.shugur.net\",\"wss://shu04.shugur.net\",\"wss://shu05.shugur.net\",\"wss://relay.damus.io\",\"wss://relay.nostr.band\",\"wss://nos.lol\"],\"blossom\":[],\"policy\":{\"min_relays\":2}}"
 
 ======================================================================
 HUMAN-READABLE VERSION (For Reference Only - NOT for DNS)
@@ -34,6 +34,11 @@ HUMAN-READABLE VERSION (For Reference Only - NOT for DNS)
   "v": 1,
   "pk": "npub1tm2kg4mzmug7nsw7pvjkqglrr4npwj2rugaymp43prgcfg2cgwlscxmv77",
   "relays": [
+    "wss://shu01.shugur.net",
+    "wss://shu02.shugur.net",
+    "wss://shu03.shugur.net",
+    "wss://shu04.shugur.net",
+    "wss://shu05.shugur.net",
     "wss://relay.damus.io",
     "wss://relay.nostr.band",
     "wss://nos.lol"
