@@ -1,0 +1,41 @@
+{
+  "name": "nw-publish",
+  "version": "0.9.7",
+  "description": "Nostr Web Publisher - Publish static websites to Nostr relays",
+  "type": "module",
+  "bin": {
+    "nw-publish": "./publish.mjs"
+  },
+  "scripts": {
+    "test": "node --test",
+    "test:watch": "node --test --watch",
+    "test:coverage": "node --test --experimental-test-coverage"
+  },
+  "keywords": [
+    "nostr",
+    "web",
+    "static-site",
+    "decentralized",
+    "publisher",
+    "nip-YY"
+  ],
+  "author": "Karim Hassan",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourorg/nostr-web.git",
+    "directory": "publisher"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "mime": "^4.0.4",
+    "nostr-tools": "^2.7.2",
+    "undici": "^6.19.8"
+  },
+  "devDependencies": {
+    "@noble/hashes": "^1.3.3"
+  }
+}

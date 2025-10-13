@@ -1,0 +1,36 @@
+# Environment
+.env
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Generated files
+_nweb.txt
+_nweb.txt.json
+
+# Cache files
+.nweb-cache.json
+
+# Test coverage
+coverage/
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Lock files (keep package-lock.json)
+# yarn.lock
+# pnpm-lock.yaml
