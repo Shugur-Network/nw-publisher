@@ -1,0 +1,13 @@
+# Don't publish these to npm
+.env
+.env.*
+_nweb.txt
+_nweb.txt.json
+.nweb-cache.json
+.nweb-keypair.json
+node_modules/
+.DS_Store
+*.log
+test/
+*.test.js
+coverage/

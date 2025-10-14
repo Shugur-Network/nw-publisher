@@ -1,5 +1,8 @@
 # Nostr Web Publisher (nw-publish)
 
+[![npm version](https://img.shields.io/npm/v/nw-publish.svg)](https://www.npmjs.com/package/nw-publish)
+[![npm downloads](https://img.shields.io/npm/dm/nw-publish.svg)](https://www.npmjs.com/package/nw-publish)
+
 CLI tool to publish static websites as Nostr events
 
 Converts a static site folder into signed Nostr events (kinds 40000-40003 for assets, 34235-34236 for metadata) with SHA256 content hashes, then publishes to Nostr relays.
@@ -19,28 +22,49 @@ Converts a static site folder into signed Nostr events (kinds 40000-40003 for as
 
 ## Installation
 
+### npm (Recommended)
+
+Install globally from npm:
+
 ```bash
-cd publisher
-npm install
-npm link
+npm install -g nw-publish
 ```
 
 This creates a global `nw-publish` command you can use anywhere.
+
+### From Source
+
+If you want to contribute or need the latest development version:
+
+```bash
+git clone https://github.com/Shugur-Network/nostr-web.git
+cd nostr-web/publisher
+npm install
+npm link
+```
 
 ---
 
 ## Quick Start
 
-### 1. Set Up Environment Variables
+### 1. Install
 
-Create a `.env` file in the publisher directory:
+```bash
+npm install -g nw-publish
+```
+
+### 2. Set Up Environment Variables
+
+You can use a `.env` file or export environment variables:
+
+**Option A: Using .env file** (create in your site directory)
 
 ```bash
 # Required: Your Nostr private key (64-character hex)
 NOSTR_SK_HEX="your_private_key_hex_here"
 
 # Required: Relay URLs (comma-separated)
-RELAYS="wss://shu01.shugur.net,wss://shu02.shugur.net,wss://shu03.shugur.net,wss://shu04.shugur.net,wss://shu05.shugur.net"
+RELAYS="wss://shu01.shugur.net,wss://shu02.shugur.net,wss://shu03.shugur.net"
 
 # Recommended: Your domain (for DNS TXT record generation)
 NWEB_HOST="yourdomain.com"
@@ -49,9 +73,17 @@ NWEB_HOST="yourdomain.com"
 BLOSSOM_ENDPOINTS="https://blossom.shugur.net"
 ```
 
+**Option B: Export environment variables**
+
+```bash
+export NOSTR_SK_HEX="your_private_key_hex"
+export RELAYS="wss://relay1.com,wss://relay2.com"
+export NWEB_HOST="yourdomain.com"
+```
+
 **⚠️ Security:** Never commit `.env` to version control!
 
-### 2. Publish Your Site
+### 3. Publish Your Site
 
 ```bash
 nw-publish /path/to/your/site
@@ -60,10 +92,10 @@ nw-publish /path/to/your/site
 Example:
 
 ```bash
-nw-publish ../examples/hello-world
+nw-publish ./my-website
 ```
 
-### 3. Set Up DNS
+### 4. Set Up DNS
 
 The publisher outputs `_nweb.txt` with instructions. Copy the JSON value into a TXT record:
 

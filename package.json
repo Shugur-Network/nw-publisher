@@ -3,9 +3,15 @@
   "version": "0.9.7",
   "description": "Nostr Web Publisher - Publish static websites to Nostr relays",
   "type": "module",
+  "main": "./publish.mjs",
   "bin": {
     "nw-publish": "./publish.mjs"
   },
+  "files": [
+    "publish.mjs",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "test": "node --test",
     "test:watch": "node --test --watch",
@@ -17,14 +23,21 @@
     "static-site",
     "decentralized",
     "publisher",
-    "nip-YY"
+    "nip-YY",
+    "cli",
+    "website",
+    "publishing"
   ],
-  "author": "Karim Hassan",
+  "author": "Karim Hassan <karim@shugur.com>",
   "license": "MIT",
+  "homepage": "https://docs.shugur.com/nostr-web",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourorg/nostr-web.git",
+    "url": "https://github.com/Shugur-Network/nostr-web.git",
     "directory": "publisher"
+  },
+  "bugs": {
+    "url": "https://github.com/Shugur-Network/nostr-web/issues"
   },
   "engines": {
     "node": ">=18.0.0"

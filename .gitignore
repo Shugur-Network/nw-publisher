@@ -34,3 +34,5 @@ npm-debug.log*
 # Lock files (keep package-lock.json)
 # yarn.lock
 # pnpm-lock.yaml
+
+publish-to-npm.sh
