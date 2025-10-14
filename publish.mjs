@@ -127,6 +127,67 @@ function saveEventCache(siteDir, cache) {
   fs.writeFileSync(cachePath, JSON.stringify(cache, null, 2));
 }
 
+/**
+ * Check if directory should be ignored during scanning
+ */
+function shouldIgnoreDir(name) {
+  return (
+    name.startsWith(".") ||
+    name === "node_modules" ||
+    name === "dist" ||
+    name === "build" ||
+    name === "out" ||
+    name === "_site"
+  );
+}
+
+/**
+ * Recursively find all HTML files in directory
+ * Returns array of { path: string, route: string }
+ */
+function findHTMLFiles(dir, baseDir = dir) {
+  const files = [];
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      if (!shouldIgnoreDir(entry.name)) {
+        files.push(...findHTMLFiles(fullPath, baseDir));
+      }
+    } else if (entry.isFile() && entry.name.endsWith(".html")) {
+      const relativePath = path.relative(baseDir, fullPath);
+      const route = htmlPathToRoute(relativePath);
+      files.push({ path: fullPath, route });
+    }
+  }
+
+  return files;
+}
+
+/**
+ * Convert HTML file path to route
+ * Examples:
+ *   index.html → /
+ *   about.html → /about
+ *   blog/index.html → /blog
+ *   blog/post-1.html → /blog/post-1
+ *   docs/api/intro.html → /docs/api/intro
+ */
+function htmlPathToRoute(htmlPath) {
+  // Normalize path separators
+  let route = "/" + htmlPath.replace(/\\/g, "/");
+
+  // Strip trailing /index.html to get directory route
+  route = route.replace(/\/index\.html$/, "") || "/";
+
+  // Strip .html extension
+  route = route.replace(/\.html$/, "");
+
+  return route;
+}
+
 async function* walk(dir) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, e.name);
@@ -302,17 +363,35 @@ async function main() {
 
   // 2) Manifests (34235)
   console.log("\n📋 Processing manifests...");
+
+  // Find all HTML files to ensure we create manifests for all routes
+  console.log("🔍 Scanning for HTML files...");
+  const htmlFiles = findHTMLFiles(siteDir);
+  console.log(`   Found ${htmlFiles.length} HTML file(s)`);
+  for (const { route } of htmlFiles) {
+    console.log(`   - ${route}`);
+  }
+
   // First, collect global CSS/JS from root route
   const globalCSS = assetBuckets["/"]?.css || [];
   const globalJS = assetBuckets["/"]?.js || [];
 
-  for (const [route, ids] of Object.entries(assetBuckets)) {
-    if (!ids.html && route !== "/") {
-      console.warn(`[SKIP] manifest for ${route} (no HTML)`);
+  // Create manifests for all HTML routes found
+  for (const { route } of htmlFiles) {
+    const ids = assetBuckets[route] || {
+      html: null,
+      css: [],
+      js: [],
+      comps: [],
+    };
+
+    if (!ids.html) {
+      console.warn(`[SKIP] manifest for ${route} (HTML not found in assets)`);
       continue;
     }
+
     const tags = [["d", route]];
-    if (ids.html) tags.push(["e", ids.html, "html"]);
+    tags.push(["e", ids.html, "html"]);
 
     // Include route-specific CSS plus global CSS from root
     const allCSS = route === "/" ? ids.css : [...globalCSS, ...ids.css];
@@ -322,8 +401,18 @@ async function main() {
     for (const j of allJS) tags.push(["e", j, "js"]);
     for (const c of ids.comps) tags.push(["e", c, "component"]);
 
+    // Extract title from route (e.g., /about -> About, /posts/welcome -> Welcome)
+    const routeParts = route.split("/").filter(Boolean);
+    const title =
+      routeParts.length === 0
+        ? "Home"
+        : routeParts[routeParts.length - 1]
+            .split("-")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ");
+
     const content = JSON.stringify({
-      title: route === "/" ? "Home" : route,
+      title,
       csp: {
         defaultSrc: ["'self'"],
         imgSrc: ["'self'", "data:", "https:", "blossom:"],
@@ -374,9 +463,19 @@ async function main() {
   // 3) Site index (34236)
   console.log("\n🗂️  Updating site index...");
   const indexTags = [["d", "site-index"]];
+  const routes = {}; // Map routes to manifest IDs for content JSON
+
   for (const m of manifestEvents) {
     const r = (m.tags.find((t) => t[0] === "d") || [, "/"])[1];
     indexTags.push(["route", m.id, r]);
+    routes[r] = m.id; // Add to routes object for content
+  }
+
+  console.log(
+    `   Creating site index with ${Object.keys(routes).length} route(s):`
+  );
+  for (const route of Object.keys(routes).sort()) {
+    console.log(`   - ${route} → ${routes[route]}`);
   }
 
   // Check if site index changed by comparing manifest IDs
@@ -401,10 +500,11 @@ async function main() {
     created_at: now(),
     tags: indexTags,
     content: JSON.stringify({
-      defaultRoute: assetBuckets["/"]
-        ? "/"
-        : Object.keys(assetBuckets)[0] || "/",
-      notFoundRoute: "/404",
+      routes, // Include all routes in content for extension to read
+      defaultRoute: routes["/"] ? "/" : Object.keys(routes).sort()[0] || "/",
+      notFoundRoute: routes["/404"] || null,
+      version: "1.0.0",
+      published_at: new Date().toISOString(),
     }),
   });
   await publishToRelays(conns, siteIndex);
