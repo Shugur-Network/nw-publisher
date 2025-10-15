@@ -1,0 +1,7 @@
+:root { --fg:#111; --bg:#fafafa; --accent:#0b7a0b; }
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font:16px system-ui,-apple-system,Segoe UI,Roboto,Ubuntu;}
+.wrap{max-width:720px;margin:48px auto;padding:0 16px;}
+h1{font-size:32px;margin:0 0 12px}
+p{opacity:.8}
+button{background:var(--accent);color:#fff;border:0;padding:10px 14px;border-radius:8px;cursor:pointer}
+pre{background:#fff;border:1px solid #eee;padding:12px;border-radius:8px;margin-top:12px;overflow:auto}
