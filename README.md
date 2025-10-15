@@ -2,10 +2,11 @@
 
 [![npm version](https://img.shields.io/npm/v/nw-publish.svg)](https://www.npmjs.com/package/nw-publish)
 [![npm downloads](https://img.shields.io/npm/dm/nw-publish.svg)](https://www.npmjs.com/package/nw-publish)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-CLI tool to publish static websites as Nostr events
+> 🚀 **Publish static websites to the Nostr network** - Decentralize your web presence with content-addressed, cryptographically signed assets.
 
-Converts a static site folder into signed Nostr events (kinds 40000-40003 for assets, 34235-34236 for metadata) with SHA256 content hashes, then publishes to Nostr relays.
+**Nostr Web Publisher** is a CLI tool that converts static sites into signed Nostr events with SHA256 content hashes and publishes them to Nostr relays. Your website becomes censorship-resistant, verifiable, and truly decentralized.
 
 ---
 
@@ -38,7 +39,7 @@ If you want to contribute or need the latest development version:
 
 ```bash
 git clone https://github.com/Shugur-Network/nw-publisher.git
-cd nostr-web/publisher
+cd nw-publisher
 npm install
 npm link
 ```
