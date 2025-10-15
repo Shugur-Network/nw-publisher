@@ -30,7 +30,7 @@
   ],
   "author": "Karim Hassan <karim@shugur.com>",
   "license": "MIT",
-  "homepage": "https://docs.shugur.com/nostr-web",
+  "homepage": "https://shugur.com/nostr-web",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Shugur-Network/nw-publisher.git"
