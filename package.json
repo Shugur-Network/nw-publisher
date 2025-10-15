@@ -1,6 +1,6 @@
 {
   "name": "nw-publish",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Nostr Web Publisher - Publish static websites to Nostr relays",
   "type": "module",
   "main": "./publish.mjs",
