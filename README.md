@@ -37,7 +37,7 @@ This creates a global `nw-publish` command you can use anywhere.
 If you want to contribute or need the latest development version:
 
 ```bash
-git clone https://github.com/Shugur-Network/nostr-web.git
+git clone https://github.com/Shugur-Network/nw-publisher.git
 cd nostr-web/publisher
 npm install
 npm link
