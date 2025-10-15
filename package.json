@@ -1,11 +1,11 @@
 {
   "name": "nw-publish",
-  "version": "0.9.7",
+  "version": "1.0.0",
   "description": "Nostr Web Publisher - Publish static websites to Nostr relays",
   "type": "module",
   "main": "./publish.mjs",
   "bin": {
-    "nw-publish": "./publish.mjs"
+    "nw-publish": "publish.mjs"
   },
   "files": [
     "publish.mjs",
@@ -30,10 +30,10 @@
   ],
   "author": "Karim Hassan <karim@shugur.com>",
   "license": "MIT",
-  "homepage": "https://docs.shugur.com/nostr-web",
+  "homepage": "https://shugur.com/nostr-web",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Shugur-Network/nw-publisher.git"
+    "url": "git+https://github.com/Shugur-Network/nw-publisher.git"
   },
   "bugs": {
     "url": "https://github.com/Shugur-Network/nw-publisher/issues"
