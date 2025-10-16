@@ -252,6 +252,29 @@ my-site/
 
 ## Troubleshooting
 
+### Cleanup Tool
+
+If you need to reset your site or remove all published events:
+
+```bash
+node cleanup.mjs <site-folder>
+```
+
+This will:
+
+- Query all events published by your site from configured relays
+- Send deletion requests (kind 5 events) to all relays
+- Delete the local cache file
+- Provide detailed summary of what was deleted
+
+**Example:**
+
+```bash
+node cleanup.mjs examples/hello-world
+```
+
+See [CLEANUP.md](./CLEANUP.md) for full documentation.
+
 ### "Cannot find module 'nostr-tools'"
 
 **Solution:** Run `npm install` first
@@ -272,6 +295,13 @@ echo "NOSTR_SK_HEX=your_hex_key_here" > .env
 2. Events too large (relay limits ~64KB)
 3. Rate limiting (wait a few minutes)
 
+**Solution:** Use the cleanup tool to remove orphaned events, then republish:
+
+```bash
+node cleanup.mjs <site-folder>
+node publish.mjs <site-folder>
+```
+
 ### Site Not Loading
 
 **Check:**
@@ -280,6 +310,13 @@ echo "NOSTR_SK_HEX=your_hex_key_here" > .env
 2. JSON format valid
 3. Pubkey in DNS matches events
 4. Extension v0.9.6+ (fetches site index fresh)
+
+**Reset:** If site is inconsistent, use cleanup tool:
+
+```bash
+node cleanup.mjs <site-folder>
+node publish.mjs <site-folder>
+```
 
 ---
 

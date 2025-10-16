@@ -17,6 +17,10 @@ _nweb.txt.json
 # Test coverage
 coverage/
 
+# temp
+tmp/
+temp/
+
 # macOS
 .DS_Store
 
