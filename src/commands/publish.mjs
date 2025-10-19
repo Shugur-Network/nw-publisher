@@ -96,12 +96,8 @@ function readEnv() {
     .map((s) => s.trim())
     .filter(Boolean);
   if (!relays.length) throw new Error("RELAYS is required (comma-separated)");
-  const blossom = (process.env.BLOSSOM_ENDPOINTS || "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
   const host = (process.env.NWEB_HOST || "").trim();
-  return { relays, blossom, host };
+  return { relays, host };
 }
 
 /**
@@ -291,9 +287,6 @@ function routeForFile(root, file) {
 
 function isText(m) {
   return /^text\/|^application\/(javascript|json|xml)/.test(m);
-}
-function isMedia(m) {
-  return /^image\/|^audio\/|^video\/|^font\//.test(m);
 }
 
 function signEvent(skHex, pubkey, draft) {
@@ -492,23 +485,48 @@ async function publishToRelays(
   };
 }
 
-async function uploadBlossom(endpoints, buf, mtype) {
-  if (!endpoints?.length) return null;
-  const u = endpoints[0].replace(/\/+$/, "") + "/upload";
-  const r = await fetch(u, {
-    method: "POST",
-    headers: { "content-type": mtype },
-    body: buf,
-  });
-  if (!r.ok) throw new Error(`Blossom upload failed: ${r.status}`);
-  const j = await r.json().catch(() => ({}));
-  return j.url || j.hash || null;
-}
-
 async function main() {
   const [, , siteDirArg] = process.argv;
+
+  // Show help
+  if (siteDirArg === "--help" || siteDirArg === "-h") {
+    console.log(`
+🚀 Nostr Web Deploy
+
+Deploy your website to Nostr relays.
+Publishes HTML, CSS, JS, and media files as Nostr events.
+
+Usage: nweb deploy <site-folder>
+
+Arguments:
+  site-folder       Path to your website directory (required)
+
+Examples:
+  # Deploy current directory
+  nweb deploy .
+  
+  # Deploy specific folder
+  nweb deploy ./my-site
+  nweb deploy examples/hello-world
+
+Requirements:
+  - NOSTR_SK_HEX in .env (or generates new keypair)
+  - RELAYS in .env (comma-separated relay URLs)
+  - Site directory with index.html
+
+What it does:
+  1. Loads/generates keypair
+  2. Processes all site files (HTML, CSS, JS)
+  3. Creates and publishes Nostr events for assets
+  4. Creates manifest and site index events
+  5. Generates DNS TXT record instructions
+  6. Caches events for future updates
+`);
+    process.exit(0);
+  }
+
   if (!siteDirArg) {
-    console.error("Usage: nw-publish <site-folder>");
+    console.error("Usage: nweb deploy <site-folder>");
     process.exit(1);
   }
   const siteDir = path.resolve(siteDirArg);
@@ -522,7 +540,7 @@ async function main() {
   process.env._CURRENT_SK = SK;
 
   // Load other configuration
-  const { relays, blossom, host } = readEnv();
+  const { relays, host } = readEnv();
   const conns = await connectRelays(relays);
 
   // Load cache from previous publish
@@ -559,12 +577,6 @@ async function main() {
     const buf = fs.readFileSync(file);
     const mtype = mime.getType(file) || "application/octet-stream";
     const route = routeForFile(siteDir, file);
-
-    if (isMedia(mtype)) {
-      const url = await uploadBlossom(blossom, buf, mtype);
-      console.log(`[MEDIA] ${route} -> ${url || "(uploaded)"}`);
-      continue;
-    }
 
     const content = isText(mtype) ? buf.toString("utf8") : buf.toString("utf8");
     const contentHash = sha256Hex(buf);

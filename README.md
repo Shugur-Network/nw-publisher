@@ -1,23 +1,27 @@
-# Nostr Web Publisher (nw-publish)
+# Nostr Web Publisher (nweb)
 
 [![npm version](https://img.shields.io/npm/v/nw-publish.svg)](https://www.npmjs.com/package/nw-publish)
 [![npm downloads](https://img.shields.io/npm/dm/nw-publish.svg)](https://www.npmjs.com/package/nw-publish)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> 🚀 **Publish static websites to the Nostr network** - Decentralize your web presence with content-addressed, cryptographically signed assets.
+> 🚀 **Publish and manage static websites on the Nostr network** - Deploy, version, monitor, and maintain decentralized websites with a comprehensive CLI toolkit.
 
-**Nostr Web Publisher** is a CLI tool that converts static sites into signed Nostr events with SHA256 content hashes and publishes them to Nostr relays. Your website becomes censorship-resistant, verifiable, and truly decentralized.
+**Nostr Web Publisher** (`nweb`) is a full-featured CLI tool for managing static websites on Nostr. Deploy sites as signed Nostr events, track versions, monitor relay status, sync across relays, and clean up old deployments - all from one command-line interface.
 
 ---
 
 ## Features
 
-- 📦 **Publishes static sites as Nostr events** (HTML, CSS, JS, components)
-- 🔒 **Content-addressed with SHA256** (required for all assets)
-- 📝 **Always updates addressable events** with fresh timestamps
-- 🔗 **Multi-relay publishing** with parallel uploads
-- 💾 **Smart caching** (reuses unchanged assets between publishes)
-- 📄 **DNS TXT record generation** (ready to paste)
+- 📦 **Deploy static sites** - Publish HTML, CSS, JS to Nostr relays
+- 🔒 **Content-addressed** - SHA256 hashes for all assets
+- 📝 **Version management** - Track, compare, and query site versions
+- 🔗 **Multi-relay publishing** - Parallel uploads with retry logic
+- 💾 **Smart caching** - Reuse unchanged assets between deploys
+- 🔄 **Cross-relay sync** - Ensure all relays have complete data
+- 🧹 **Event cleanup** - Remove old or orphaned events
+- 📊 **Status monitoring** - Check relay connectivity and site health
+- ⚙️ **Configuration wizard** - Interactive setup for keys and relays
+- 📄 **DNS TXT generation** - Ready-to-paste records for your domain
 
 ---
 
@@ -31,7 +35,7 @@ Install globally from npm:
 npm install -g nw-publish
 ```
 
-This creates a global `nw-publish` command you can use anywhere.
+This installs the `nweb` command globally.
 
 ### From Source
 
@@ -54,49 +58,33 @@ npm link
 npm install -g nw-publish
 ```
 
-### 2. Set Up Environment Variables
-
-You can use a `.env` file or export environment variables:
-
-**Option A: Using .env file** (create in your site directory)
+### 2. Initialize a New Site
 
 ```bash
-# Required: Your Nostr private key (64-character hex)
-NOSTR_SK_HEX="your_private_key_hex_here"
-
-# Required: Relay URLs (comma-separated)
-RELAYS="wss://shu01.shugur.net,wss://shu02.shugur.net,wss://shu03.shugur.net"
-
-# Recommended: Your domain (for DNS TXT record generation)
-NWEB_HOST="yourdomain.com"
-
-# Optional: Blossom endpoints for media uploads
-BLOSSOM_ENDPOINTS="https://blossom.shugur.net"
+nweb init my-website
+cd my-website
 ```
 
-**Option B: Export environment variables**
+### 3. Configure Environment
+
+Generate a keypair and set up configuration:
 
 ```bash
-export NOSTR_SK_HEX="your_private_key_hex"
-export RELAYS="wss://relay1.com,wss://relay2.com"
-export NWEB_HOST="yourdomain.com"
+# Generate new Nostr keypair
+nweb config generate
+
+# Or manually edit .env
+cp .env.example .env
+# Edit NOSTR_SK_HEX and RELAYS
 ```
 
-**⚠️ Security:** Never commit `.env` to version control!
-
-### 3. Publish Your Site
+### 4. Deploy Your Site
 
 ```bash
-nw-publish /path/to/your/site
+nweb deploy .
 ```
 
-Example:
-
-```bash
-nw-publish ./my-website
-```
-
-### 4. Set Up DNS
+### 5. Set Up DNS (Optional)
 
 The publisher outputs `_nweb.txt` with instructions. Copy the JSON value into a TXT record:
 
@@ -159,54 +147,127 @@ All assets include SHA256 tags for verification:
 
 ---
 
-## Usage Examples
+## Commands
 
-### Basic Publish
+### Core Commands
 
-```bash
-nw-publish /path/to/site
-```
+#### `nweb deploy <site-folder>`
 
-Output:
-
-```
-✓ Using keypair from NOSTR_SK_HEX
-📝 Processing assets...
-[CACHED] 4 assets (unchanged)
-✅ Assets: 4 reused, 0 published
-
-📋 Processing manifests...
-[MANIF] / -> 6759a7d4... (republished, content unchanged)
-
-🗂️  Updating site index...
-[INDEX] site-index -> 34830dba... (updated)
-
-📄 Wrote _nweb.txt
-```
-
-### Force Full Republish
+Deploy your website to Nostr relays.
 
 ```bash
-# Delete cache to republish all assets
-rm /path/to/site/.nweb-cache.json
-nw-publish /path/to/site
+nweb deploy .
+nweb deploy ./my-site
+nweb deploy examples/hello-world
 ```
 
-### Custom Relays
+#### `nweb status [npub|hex]`
+
+Check relay connectivity and deployment status.
 
 ```bash
-RELAYS="wss://custom-relay.example.com" nw-publish /path/to/site
+# Your site (uses .env)
+nweb status
+
+# Another site (no private key needed)
+nweb status npub1abc123...
 ```
 
-### Multi-Site Publishing
+#### `nweb versions <command> [npub|hex]`
+
+Manage and query site versions.
 
 ```bash
-# Same pubkey, different sites
-nw-publish ../examples/hello-world
-nw-publish ../examples/nostr-web-info
-
-# Extension loads newest by created_at timestamp
+nweb versions list
+nweb versions show 1.0.0
+nweb versions compare 0.9.0 1.0.0
+nweb versions list npub1abc123...
 ```
+
+#### `nweb sync`
+
+Ensure all versions exist on all configured relays.
+
+```bash
+nweb sync
+```
+
+#### `nweb cleanup [options]`
+
+Remove events from Nostr relays.
+
+```bash
+nweb cleanup                    # Delete all (with confirmation)
+nweb cleanup --orphans          # Delete orphaned events only
+nweb cleanup --dry-run          # Preview without deleting
+```
+
+#### `nweb config <command>`
+
+Manage configuration and settings.
+
+```bash
+nweb config wizard              # Interactive setup
+nweb config generate            # Generate keypair
+nweb config show                # Show configuration
+nweb config validate            # Validate settings
+```
+
+#### `nweb init [directory]`
+
+Initialize a new Nostr website project.
+
+```bash
+nweb init                       # Current directory
+nweb init my-website            # New directory
+```
+
+### Usage Examples
+
+#### Deploy a Website
+
+```bash
+nweb deploy .
+```
+
+#### Check Status
+
+```bash
+# Your own site
+nweb status
+
+# Another site
+nweb status npub1abc123...
+```
+
+#### Sync Across Relays
+
+```bash
+# After adding new relays
+nweb sync
+```
+
+#### Clean Up Old Deployments
+
+```bash
+# Preview what will be deleted
+nweb cleanup --orphans --dry-run
+
+# Delete orphaned events
+nweb cleanup --orphans
+```
+
+---
+
+## Configuration
+
+### Environment Variables
+
+| Variable       | Required | Description                  | Example                |
+| -------------- | -------- | ---------------------------- | ---------------------- |
+| `NOSTR_SK_HEX` | Yes      | Nostr private key (hex)      | `a1b2c3d4...`          |
+| `RELAYS`       | Yes      | Comma-separated relay URLs   | `wss://relay1.com,...` |
+| `NWEB_HOST`    | No       | Your domain (for DNS record) | `yourdomain.com`       |
 
 ---
 
@@ -241,12 +302,11 @@ my-site/
 
 ## Environment Variables
 
-| Variable            | Required       | Description                     | Example                      |
-| ------------------- | -------------- | ------------------------------- | ---------------------------- |
-| `NOSTR_SK_HEX`      | ✅ Yes         | Nostr private key (64-char hex) | `a1b2c3d4...`                |
-| `RELAYS`            | ✅ Yes         | Comma-separated relay URLs      | `wss://shu01.shugur.net,...` |
-| `NWEB_HOST`         | ⚠️ Recommended | Your domain                     | `yourdomain.com`             |
-| `BLOSSOM_ENDPOINTS` | ❌ Optional    | Media upload endpoints          | `https://blossom.shugur.net` |
+| Variable       | Required       | Description                     | Example                      |
+| -------------- | -------------- | ------------------------------- | ---------------------------- |
+| `NOSTR_SK_HEX` | ✅ Yes         | Nostr private key (64-char hex) | `a1b2c3d4...`                |
+| `RELAYS`       | ✅ Yes         | Comma-separated relay URLs      | `wss://shu01.shugur.net,...` |
+| `NWEB_HOST`    | ⚠️ Recommended | Your domain                     | `yourdomain.com`             |
 
 ---
 

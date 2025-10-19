@@ -1,0 +1,17 @@
+{
+  "current": "0.1.1",
+  "versions": [
+    {
+      "version": "0.1.1",
+      "siteIndexId": "d4572ec6e6fba8442946172786240e5b598d5bf0fbdd44f25865f74f98772385",
+      "contentHash": "ff377131",
+      "timestamp": "2025-10-16T15:25:21.279Z",
+      "changeType": "patch",
+      "routes": [
+        "/",
+        "/about"
+      ],
+      "entrypointId": "ba749ea151558d8431e419be5a09db5db38f3f36d2242c22c6c344cd26e73d92"
+    }
+  ]
+}

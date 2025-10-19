@@ -1,18 +1,21 @@
 {
   "name": "nw-publish",
-  "version": "1.0.3",
-  "description": "Nostr Web Publisher - Publish static websites to Nostr relays",
+  "version": "1.2.0",
+  "description": "Nostr Web CLI - Tool for Nostr website management (deploy, version control, monitoring)",
   "type": "module",
-  "main": "./publish.mjs",
+  "main": "./nweb.mjs",
   "bin": {
-    "nw-publish": "publish.mjs"
+    "nweb": "nweb.mjs"
   },
   "files": [
-    "publish.mjs",
+    "nweb.mjs",
+    "src/**/*.mjs",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
+    "postinstall": "node -e \"console.log('\\\\n✅ Nostr Web CLI installed!\\\\n\\\\nGet started:\\\\n  nweb init my-site\\\\n  cd my-site\\\\n  nweb config generate\\\\n  nweb deploy\\\\n\\\\nDocumentation: https://github.com/Shugur-Network/nw-publisher\\\\n')\"",
     "test": "node --test",
     "test:watch": "node --test --watch",
     "test:coverage": "node --test --experimental-test-coverage"
@@ -23,10 +26,15 @@
     "static-site",
     "decentralized",
     "publisher",
-    "nip-YY",
     "cli",
     "website",
-    "publishing"
+    "publishing",
+    "deployment",
+    "hosting",
+    "version-control",
+    "monitoring",
+    "swiss-army-knife",
+    "nip-YY"
   ],
   "author": "Shugur <admin@shugur.com>",
   "license": "MIT",

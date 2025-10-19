@@ -23,9 +23,12 @@ hello-world/
 To publish this site to Nostr:
 
 ```bash
-cd ../../publisher
-npm install
-npx nw-publish ../examples/hello-world
+# From the repository root
+nweb deploy examples/hello-world
+
+# Or from this directory
+cd examples/hello-world
+nweb deploy .
 ```
 
 This will:

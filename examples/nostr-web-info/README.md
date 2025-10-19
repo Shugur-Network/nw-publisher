@@ -38,7 +38,7 @@ This 3-page website serves as:
 - Security model (author verification, SRI, CSP, sandboxing)
 - Publisher CLI documentation
 - Extension setup and usage
-- Advanced topics (multi-page sites, Blossom media, caching strategy)
+- Advanced topics (multi-page sites, caching strategy)
 - FAQ section
 
 ## Design System
@@ -138,7 +138,9 @@ nostr-web-info/
 2. **Publish the site:**
 
    ```bash
-   npx nw-publish ../examples/nostr-web-info
+   nweb deploy examples/nostr-web-info
+   # Or from the example directory
+   cd examples/nostr-web-info && nweb deploy .
    ```
 
 3. **Add DNS record:**
