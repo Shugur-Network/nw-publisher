@@ -13,7 +13,10 @@ import {
   getPublicKey,
   generateSecretKey,
 } from "nostr-tools";
-import { rebuildCacheFromRelays, queryVersionHistory } from "../lib/relay-query.mjs";
+import {
+  rebuildCacheFromRelays,
+  queryVersionHistory,
+} from "../lib/relay-query.mjs";
 import { parseRelayUrls } from "../lib/relay.mjs";
 
 dotenv.config();
@@ -106,16 +109,21 @@ function readEnv() {
 /**
  * Load cached event mappings (content hash -> event ID)
  * First tries local file, then falls back to querying relays
- * 
+ *
  * @param {string} siteDir - Site directory path
  * @param {Array} relays - Array of relay URLs (for fallback)
  * @param {string} pubkey - Public key (for fallback query)
  * @param {boolean} forceRebuild - If true, skip local cache and query relays
  * @returns {Promise<Object>} Cache object
  */
-async function loadEventCache(siteDir, relays = null, pubkey = null, forceRebuild = false) {
+async function loadEventCache(
+  siteDir,
+  relays = null,
+  pubkey = null,
+  forceRebuild = false
+) {
   const cachePath = path.join(siteDir, ".nweb-cache.json");
-  
+
   // Try local cache first (unless force rebuild)
   if (!forceRebuild && fs.existsSync(cachePath)) {
     try {
@@ -126,7 +134,7 @@ async function loadEventCache(siteDir, relays = null, pubkey = null, forceRebuil
       console.warn(`⚠ Failed to read cache file: ${e.message}`);
     }
   }
-  
+
   // Fallback: Query relays if we have connection info
   if (relays && relays.length > 0 && pubkey) {
     console.log("📡 Cache file not found, querying Nostr relays...\n");
@@ -137,7 +145,7 @@ async function loadEventCache(siteDir, relays = null, pubkey = null, forceRebuil
       console.warn(`⚠ Failed to rebuild cache from relays: ${e.message}`);
     }
   }
-  
+
   // Default: Empty cache
   console.log("📦 Starting with empty cache\n");
   return {
@@ -152,16 +160,21 @@ async function loadEventCache(siteDir, relays = null, pubkey = null, forceRebuil
 /**
  * Load version history
  * First tries local file, then falls back to querying relays
- * 
+ *
  * @param {string} siteDir - Site directory path
  * @param {Array} relays - Array of relay URLs (for fallback)
  * @param {string} pubkey - Public key (for fallback query)
  * @param {boolean} forceRebuild - If true, skip local file and query relays
  * @returns {Promise<Object>} Version history object
  */
-async function loadVersionHistory(siteDir, relays = null, pubkey = null, forceRebuild = false) {
+async function loadVersionHistory(
+  siteDir,
+  relays = null,
+  pubkey = null,
+  forceRebuild = false
+) {
   const versionPath = path.join(siteDir, ".nweb-versions.json");
-  
+
   // Try local file first (unless force rebuild)
   if (!forceRebuild && fs.existsSync(versionPath)) {
     try {
@@ -172,7 +185,7 @@ async function loadVersionHistory(siteDir, relays = null, pubkey = null, forceRe
       console.warn(`⚠ Failed to read version history: ${e.message}`);
     }
   }
-  
+
   // Fallback: Query relays if we have connection info
   if (relays && relays.length > 0 && pubkey) {
     console.log("📡 Version history not found, querying Nostr relays...\n");
@@ -180,10 +193,12 @@ async function loadVersionHistory(siteDir, relays = null, pubkey = null, forceRe
       const history = await queryVersionHistory(relays, pubkey);
       return history;
     } catch (e) {
-      console.warn(`⚠ Failed to rebuild version history from relays: ${e.message}`);
+      console.warn(
+        `⚠ Failed to rebuild version history from relays: ${e.message}`
+      );
     }
   }
-  
+
   // Default: Empty history
   console.log("📜 Starting with empty version history\n");
   return {
@@ -206,22 +221,22 @@ function saveVersionHistory(siteDir, history) {
  * @returns {string|null} - Valid version string or null if invalid
  */
 function parseVersion(versionStr) {
-  if (!versionStr || typeof versionStr !== 'string') {
+  if (!versionStr || typeof versionStr !== "string") {
     return null;
   }
-  
-  const parts = versionStr.split('.');
+
+  const parts = versionStr.split(".");
   if (parts.length !== 3) {
     return null;
   }
-  
+
   const [major, minor, patch] = parts;
-  
+
   // Check if all parts are valid numbers
   if (!/^\d+$/.test(major) || !/^\d+$/.test(minor) || !/^\d+$/.test(patch)) {
     return null;
   }
-  
+
   // Return normalized version
   return `${parseInt(major)}.${parseInt(minor)}.${parseInt(patch)}`;
 }
@@ -642,13 +657,13 @@ What it does:
 
   // Check for --version flag
   let customVersion = null;
-  const versionArg = process.argv.find(arg => arg.startsWith('--version='));
+  const versionArg = process.argv.find((arg) => arg.startsWith("--version="));
   if (versionArg) {
-    const versionStr = versionArg.split('=')[1];
+    const versionStr = versionArg.split("=")[1];
     customVersion = parseVersion(versionStr);
     if (!customVersion) {
       console.error(`\n❌ Error: Invalid version format "${versionStr}"`);
-      console.error('   Expected format: X.Y.Z (e.g., 1.0.0, 2.3.1)\n');
+      console.error("   Expected format: X.Y.Z (e.g., 1.0.0, 2.3.1)\n");
       process.exit(1);
     }
     console.log(`\n📌 Using custom version: ${customVersion}`);
@@ -879,7 +894,12 @@ What it does:
   }
 
   // Load version history (or query relays)
-  const versionHistory = await loadVersionHistory(siteDir, relayUrls, pubkey, forceRebuild);
+  const versionHistory = await loadVersionHistory(
+    siteDir,
+    relayUrls,
+    pubkey,
+    forceRebuild
+  );
 
   // Build preliminary site index content to check for changes
   const preliminarySiteIndexContent = JSON.stringify({
@@ -891,11 +911,11 @@ What it does:
   // Determine version: use custom if provided, otherwise auto-increment
   let newVersion;
   let changeType;
-  
+
   if (customVersion) {
     // User specified custom version
     newVersion = customVersion;
-    changeType = 'manual';
+    changeType = "manual";
     console.log(
       `   Version: ${versionHistory.current} → ${newVersion} (custom)`
     );
@@ -1131,7 +1151,9 @@ What it does:
       console.warn(
         `   DNS record will include all configured relays as fallback.`
       );
-      console.warn(`   Site accessibility may be limited until issues are resolved.\n`);
+      console.warn(
+        `   Site accessibility may be limited until issues are resolved.\n`
+      );
     }
 
     // Use successful relays, or all relays as fallback if none succeeded completely

@@ -45,7 +45,9 @@ export async function queryExistingAssets(relayUrls, pubkey) {
   const assetMap = {};
   const kind = EVENT_KINDS.ASSET;
 
-  console.log(`🔍 Querying ${relayUrls.length} relay(s) for existing assets...`);
+  console.log(
+    `🔍 Querying ${relayUrls.length} relay(s) for existing assets...`
+  );
 
   for (const url of relayUrls) {
     try {
@@ -228,7 +230,9 @@ export async function queryVersionHistory(relayUrls, pubkey) {
         currentVersion = version;
       }
     } catch (error) {
-      console.warn(`  ⚠ Failed to parse site index ${siteIndex.id}: ${error.message}`);
+      console.warn(
+        `  ⚠ Failed to parse site index ${siteIndex.id}: ${error.message}`
+      );
     }
   }
 
