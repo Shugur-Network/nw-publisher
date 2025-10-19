@@ -20,13 +20,8 @@ coverage/
 # Temporary directories
 tmp/
 temp/
-
-# Development documentation (internal only)
-TESTING.md
-TEST_RESULTS.md
-VERIFICATION_REPORT.md
-MESSAGING-IMPROVEMENTS.md
-
+test-query-*/
+test-site-*/
 # macOS
 .DS_Store
 

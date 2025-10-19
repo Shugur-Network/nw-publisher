@@ -169,14 +169,16 @@ export async function queryVersionHistory(relayUrls, pubkey) {
     try {
       const relay = await connectToRelay(url);
 
-      // Query all site index events (replaceable kind 31126)
+      // Query all site index events (addressable kind 31126)
+      // Don't filter by d-tag to get all versions for history
       const events = await queryEvents(
         relay,
         [
           {
             kinds: [kind],
             authors: [pubkey],
-            "#d": ["site-index"], // Standard d tag for site index
+            // No #d filter - d-tags are content-addressed (truncated hashes)
+            // We want all site index versions for this author
           },
         ],
         15000
