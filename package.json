@@ -16,7 +16,11 @@
   ],
   "scripts": {
     "postinstall": "node -e \"console.log('\\\\n✅ Nostr Web CLI installed!\\\\n\\\\nGet started:\\\\n  nweb init my-site\\\\n  cd my-site\\\\n  nweb config generate\\\\n  nweb deploy\\\\n\\\\nDocumentation: https://github.com/Shugur-Network/nw-publisher\\\\n')\"",
-    "test": "node --test",
+    "test": "node --test test/cli.test.mjs test/relay.test.mjs",
+    "test:unit": "node --test test/cli.test.mjs test/relay.test.mjs",
+    "test:integration": "node test/integration.test.mjs",
+    "test:manual": "./test/manual-workflow.sh",
+    "test:all": "npm run test:unit && npm run test:integration",
     "test:watch": "node --test --watch",
     "test:coverage": "node --test --experimental-test-coverage"
   },

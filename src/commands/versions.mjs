@@ -510,8 +510,12 @@ Examples:
           `Unknown command: ${command}. Use --help for usage.`
         );
     }
+
+    // Explicitly exit to prevent hanging connections
+    process.exit(0);
   } catch (error) {
     handleError(error);
+    process.exit(1);
   }
 }
 

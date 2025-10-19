@@ -104,7 +104,7 @@ async function configWizard() {
     const rl = readline.createInterface({ input, output });
 
     logger.header("🧙 Nostr Web Configuration Wizard");
-    logger.info("Let's set up your Nostr website project.\n");
+    logger.info("Configure your Nostr website project.\n");
 
     const config = { ...DEFAULT_CONFIG };
 
@@ -257,6 +257,36 @@ function getConfigValue(key) {
 }
 
 /**
+ * Generate new keypair
+ */
+function generateKeypairCmd() {
+  try {
+    logger.header("🔑 Generating New Keypair");
+
+    const { privateKey, publicKey } = generateKeypair();
+    const npub = nip19.npubEncode(publicKey);
+    const nsec = nip19.nsecEncode(Buffer.from(privateKey, "hex"));
+
+    logger.info("\nPrivate Key (hex):");
+    console.log(privateKey);
+    logger.info("\nPrivate Key (nsec):");
+    console.log(nsec);
+    logger.info("\nPublic Key (npub):");
+    console.log(npub);
+    logger.info("");
+
+    logger.warn(
+      "⚠️  Keep your private key safe! Anyone with access can publish as you."
+    );
+    logger.info("\n💡 Add to .env file:");
+    logger.info(`   NOSTR_SK_HEX=${privateKey}`);
+    logger.info("");
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+/**
  * Validate configuration
  */
 function validateConfig() {
@@ -343,6 +373,7 @@ Usage: nweb config <command> [options]
 
 Commands:
   wizard           Interactive configuration setup
+  generate         Generate new keypair
   show             Display current configuration
   set <key> <val>  Set configuration value
   get <key>        Get configuration value
@@ -351,6 +382,9 @@ Commands:
 Examples:
   # Run interactive setup
   nweb config wizard
+  
+  # Generate new keypair
+  nweb config generate
   
   # Show current config
   nweb config show
@@ -374,6 +408,10 @@ Examples:
     switch (command) {
       case "wizard":
         await configWizard();
+        break;
+
+      case "generate":
+        generateKeypairCmd();
         break;
 
       case "show":

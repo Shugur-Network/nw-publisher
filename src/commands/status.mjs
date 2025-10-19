@@ -265,9 +265,13 @@ What it checks:
   const pubkeyArg = args[0] || null;
 
   await checkStatus(pubkeyArg);
+
+  // Explicitly exit to prevent hanging connections
+  process.exit(0);
 }
 
 // Run with error handling
 main().catch((error) => {
   handleError(error);
+  process.exit(1);
 });

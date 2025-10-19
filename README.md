@@ -105,25 +105,23 @@ Static Site Folder
   ├─> Scan files (HTML, CSS, JS)
   ├─> Compute SHA256 hashes
   ├─> Sign as Nostr events
-  │     ├─> Kind 40000: HTML content
-  │     ├─> Kind 40001: CSS stylesheets
-  │     ├─> Kind 40002: JavaScript modules
-  │     └─> Kind 40003: Reusable components
+  │     └─> Kind 1125: All assets (HTML, CSS, JS, etc.)
   ├─> Publish to relays (parallel)
-  ├─> Create page manifests (kind 34235)
-  └─> Update site index (kind 34236)
+  ├─> Create page manifests (kind 1126)
+  ├─> Update site index (kind 31126)
+  └─> Update entrypoint (kind 11126)
 ```
 
 ### Smart Caching
 
-**Immutable assets** (40000-40003) are cached:
+**Immutable assets** (kind 1125) are cached:
 
 - **Cache file:** `.nweb-cache.json` (in site folder)
-- **Cache key:** `${filepath}:${hash}` (content-addressed)
+- **Cache key:** `${kind}:${content-hash}` (content-addressed)
 - **Behavior:** If file unchanged, reuses cached event ID
 - **Benefit:** Only publishes new/changed assets
 
-**Addressable events** (34235, 34236) are **always republished** with fresh `created_at` timestamps, even if content unchanged. This ensures:
+**Addressable events** (31126 - Site Index) and **replaceable events** (11126 - Entrypoint) are **republished when content changes**. This ensures:
 
 - Extension detects which site is newest
 - Multiple sites with same pubkey stay synchronized
@@ -135,11 +133,11 @@ All assets include SHA256 tags for verification:
 
 ```json
 {
-  "kind": 40000,
+  "kind": 1125,
   "tags": [
-    ["path", "/index.html"],
-    ["type", "text/html"],
-    ["sha256", "abc123..."]
+    ["m", "text/html"],
+    ["x", "abc123..."],
+    ["alt", "Home Page"]
   ],
   "content": "<!DOCTYPE html>..."
 }
@@ -155,11 +153,30 @@ All assets include SHA256 tags for verification:
 
 Deploy your website to Nostr relays.
 
+**Options:**
+
+- `--version=X.Y.Z` - Set a custom version (e.g., 2.0.0)
+- `--rebuild-cache` - Force rebuild cache from relays
+
 ```bash
+# Basic deployment
 nweb deploy .
 nweb deploy ./my-site
 nweb deploy examples/hello-world
+
+# Deploy with custom version
+nweb deploy . --version=2.0.0
+
+# Rebuild cache from relays
+nweb deploy . --rebuild-cache
 ```
+
+**Version Management:**
+
+- Without `--version`: Automatically increments based on changes
+  - **patch** (0.0.x): Content changes only
+  - **minor** (0.x.0): New routes added/removed
+- With `--version`: Uses your specified version (format: X.Y.Z)
 
 #### `nweb status [npub|hex]`
 
@@ -294,9 +311,10 @@ my-site/
 
 **Published to Nostr:**
 
-- Asset events (40000-40003) → HTML, CSS, JS, components
-- Page manifests (34235) → Per-route metadata
-- Site index (34236) → Route mapping
+- Asset events (1125) → HTML, CSS, JS, fonts, images
+- Page manifests (1126) → Per-route metadata
+- Site index (31126) → Route mapping (addressable)
+- Entrypoint (11126) → Points to current site index
 
 ---
 
@@ -310,6 +328,46 @@ my-site/
 
 ---
 
+## Cache Files (Optional)
+
+`nweb` creates two local cache files in your site directory:
+
+### `.nweb-cache.json` - Event Cache
+
+- **Stores**: Asset event IDs, manifest IDs, site index data
+- **Purpose**: Avoid re-publishing unchanged files (faster deployments)
+- **Can be deleted**: Yes! The tool will query relays to rebuild the cache
+
+### `.nweb-versions.json` - Version History
+
+- **Stores**: List of all published versions with timestamps
+- **Purpose**: Track deployment history, power `nweb versions` command
+- **Can be deleted**: Yes! The tool will reconstruct history from relays
+
+### Rebuilding from Relays
+
+If cache files are missing or deleted, `nweb` automatically queries your configured relays to rebuild them:
+
+```bash
+# Normal deploy - uses cache if available, queries relays if not
+nweb deploy .
+
+# Force rebuild from relays (ignore local cache)
+nweb deploy . --rebuild-cache
+```
+
+**Benefits of relay-based cache:**
+
+- ✅ No dependency on local files
+- ✅ Works across multiple machines
+- ✅ Team members see the same state
+- ✅ CI/CD doesn't need cache files
+- ✅ Relays are the single source of truth
+
+**Note**: Querying relays is slower than reading local cache (~5-10 seconds), so cache files speed up subsequent deployments. Add them to `.gitignore` (done automatically by `nweb init`).
+
+---
+
 ## Troubleshooting
 
 ### Cleanup Tool
@@ -317,7 +375,7 @@ my-site/
 If you need to reset your site or remove all published events:
 
 ```bash
-node cleanup.mjs <site-folder>
+nweb cleanup
 ```
 
 This will:
@@ -330,7 +388,7 @@ This will:
 **Example:**
 
 ```bash
-node cleanup.mjs examples/hello-world
+nweb cleanup
 ```
 
 See [CLEANUP.md](./CLEANUP.md) for full documentation.
@@ -358,8 +416,8 @@ echo "NOSTR_SK_HEX=your_hex_key_here" > .env
 **Solution:** Use the cleanup tool to remove orphaned events, then republish:
 
 ```bash
-node cleanup.mjs <site-folder>
-node publish.mjs <site-folder>
+nweb cleanup
+nweb deploy <site-folder>
 ```
 
 ### Site Not Loading
@@ -374,8 +432,8 @@ node publish.mjs <site-folder>
 **Reset:** If site is inconsistent, use cleanup tool:
 
 ```bash
-node cleanup.mjs <site-folder>
-node publish.mjs <site-folder>
+nweb cleanup
+nweb deploy <site-folder>
 ```
 
 ---
@@ -384,68 +442,88 @@ node publish.mjs <site-folder>
 
 ### Event Kinds
 
-| Kind  | Name          | Type        | Purpose                |
-| ----- | ------------- | ----------- | ---------------------- |
-| 40000 | HTML          | Immutable   | Page content           |
-| 40001 | CSS           | Immutable   | Stylesheets            |
-| 40002 | JS            | Immutable   | JavaScript             |
-| 40003 | Components    | Immutable   | Reusable snippets      |
-| 34235 | Page Manifest | Replaceable | Links assets per route |
-| 34236 | Site Index    | Replaceable | Maps routes            |
+| Kind    | Name          | Type        | Purpose                              |
+| ------- | ------------- | ----------- | ------------------------------------ |
+| `1125`  | Asset         | Regular     | All web assets (HTML, CSS, JS, etc.) |
+| `1126`  | Page Manifest | Regular     | Links assets per page                |
+| `31126` | Site Index    | Addressable | Maps routes (content-addressed)      |
+| `11126` | Entrypoint    | Replaceable | Points to current site index         |
 
-**Immutable events** (40000-40003):
+**Regular events** (1125, 1126):
 
-- Content-addressed by SHA256
+- Content-addressed by SHA256 (via `x` tag)
+- Immutable once published
 - Cached indefinitely
 - Never republished if unchanged
 
-**Replaceable events** (34235, 34236):
+**Addressable event** (31126 - Site Index):
 
-- Identified by `["d"]` tag (NIP-33)
-- Always republished with fresh `created_at`
-- Relays keep only newest version
+- Uses content-addressed `d` tag (first 7-12 chars of content hash)
+- Different content = different event
+- Each version is preserved on relays
+
+**Replaceable event** (11126 - Entrypoint):
+
+- Only latest event per author is kept
+- Points to current site index via `a` tag
+- Updated when site index changes
 
 ### Tag Structure
 
-**Assets:**
+**Asset (Kind 1125):**
 
 ```json
 {
-  "kind": 40000,
+  "kind": 1125,
   "tags": [
-    ["path", "/index.html"],
-    ["type", "text/html"],
-    ["sha256", "abc123..."],
-    ["size", "1234"]
-  ]
+    ["m", "text/html"],
+    ["x", "abc123..."],
+    ["alt", "Home Page"]
+  ],
+  "content": "<!DOCTYPE html>..."
 }
 ```
 
-**Page Manifest:**
+**Page Manifest (Kind 1126):**
 
 ```json
 {
-  "kind": 34235,
+  "kind": 1126,
   "tags": [
-    ["d", "/"],
+    ["route", "/"],
     ["title", "Home"],
-    ["e", "html_id", "", "html"],
-    ["e", "css_id", "", "css"],
-    ["e", "js_id", "", "js"]
-  ]
+    ["e", "html_event_id", "wss://relay.example.com"],
+    ["e", "css_event_id", "wss://relay.example.com"],
+    ["e", "js_event_id", "wss://relay.example.com"]
+  ],
+  "content": ""
 }
 ```
 
-**Site Index:**
+**Site Index (Kind 31126):**
 
 ```json
 {
-  "kind": 34236,
+  "kind": 31126,
   "tags": [
-    ["d", "site-index"],
-    ["e", "manifest_id", "", "/"],
-    ["host", "yourdomain.com"]
-  ]
+    ["d", "a1b2c3d"],
+    ["x", "a1b2c3d4e5f6...full-hash..."],
+    ["alt", "main"]
+  ],
+  "content": "{
+    \"/\": \"<manifest-event-id-1>\",
+    \"/about\": \"<manifest-event-id-2>\"
+  }"
+}
+```
+
+**Entrypoint (Kind 11126):**
+
+```json
+{
+  "kind": 11126,
+  "tags": [["a", "31126:<pubkey>:a1b2c3d", "wss://relay.example.com"]],
+  "content": ""
 }
 ```
 

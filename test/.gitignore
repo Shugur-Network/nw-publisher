@@ -1,0 +1,4 @@
+# Test artifacts
+test-site-*
+*.test-output.txt
+

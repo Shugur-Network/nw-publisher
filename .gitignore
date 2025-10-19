@@ -10,16 +10,22 @@ dist/
 # Generated files
 _nweb.txt
 _nweb.txt.json
-
-# Cache files
 .nweb-cache.json
+.nweb-versions.json
+.nweb-keypair.json
 
 # Test coverage
 coverage/
 
-# temp
+# Temporary directories
 tmp/
 temp/
+
+# Development documentation (internal only)
+TESTING.md
+TEST_RESULTS.md
+VERIFICATION_REPORT.md
+MESSAGING-IMPROVEMENTS.md
 
 # macOS
 .DS_Store
@@ -39,4 +45,5 @@ npm-debug.log*
 # yarn.lock
 # pnpm-lock.yaml
 
+# Scripts (internal only)
 publish-to-npm.sh

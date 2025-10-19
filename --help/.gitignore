@@ -1,6 +1,0 @@
-.env
-.nweb-cache.json
-.nweb-keypair.json
-node_modules/
-_nweb.txt
-_nweb.txt.json

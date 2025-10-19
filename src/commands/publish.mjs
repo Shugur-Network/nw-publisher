@@ -13,6 +13,8 @@ import {
   getPublicKey,
   generateSecretKey,
 } from "nostr-tools";
+import { rebuildCacheFromRelays, queryVersionHistory } from "../lib/relay-query.mjs";
+import { parseRelayUrls } from "../lib/relay.mjs";
 
 dotenv.config();
 
@@ -78,14 +80,15 @@ function loadOrGenerateKeypair(siteDir) {
 
   fs.writeFileSync(keypairPath, JSON.stringify(keypairData, null, 2));
   console.log(`✓ New keypair saved to .nweb-keypair.json`);
-  console.log(`\n⚠️  IMPORTANT: Save your private key securely!`);
-  console.log(`  Public Key (npub): ${npub}`);
+  console.log(`\n⚠️  Important: Secure your private key`);
+  console.log(`   Anyone with access to this key can publish content as you.`);
+  console.log(`\n  Public Key (npub):  ${npub}`);
   console.log(`  Private Key (nsec): ${nsec}`);
-  console.log(`\n  To reuse this keypair later:`);
+  console.log(`\n  Keypair Storage Options:`);
   console.log(
-    `  - Keep the .nweb-keypair.json file in your site directory, OR`
+    `   • Keep the .nweb-keypair.json file in your site directory, or`
   );
-  console.log(`  - Set NOSTR_SK_HEX=${SK} in your .env file\n`);
+  console.log(`   • Set NOSTR_SK_HEX=${SK} in your .env file\n`);
 
   return { SK, pubkey, npub, source: "generated" };
 }
@@ -102,16 +105,41 @@ function readEnv() {
 
 /**
  * Load cached event mappings (content hash -> event ID)
+ * First tries local file, then falls back to querying relays
+ * 
+ * @param {string} siteDir - Site directory path
+ * @param {Array} relays - Array of relay URLs (for fallback)
+ * @param {string} pubkey - Public key (for fallback query)
+ * @param {boolean} forceRebuild - If true, skip local cache and query relays
+ * @returns {Promise<Object>} Cache object
  */
-function loadEventCache(siteDir) {
+async function loadEventCache(siteDir, relays = null, pubkey = null, forceRebuild = false) {
   const cachePath = path.join(siteDir, ".nweb-cache.json");
-  if (fs.existsSync(cachePath)) {
+  
+  // Try local cache first (unless force rebuild)
+  if (!forceRebuild && fs.existsSync(cachePath)) {
     try {
-      return JSON.parse(fs.readFileSync(cachePath, "utf8"));
+      const cache = JSON.parse(fs.readFileSync(cachePath, "utf8"));
+      console.log("📦 Loaded cache from local file\n");
+      return cache;
     } catch (e) {
       console.warn(`⚠ Failed to read cache file: ${e.message}`);
     }
   }
+  
+  // Fallback: Query relays if we have connection info
+  if (relays && relays.length > 0 && pubkey) {
+    console.log("📡 Cache file not found, querying Nostr relays...\n");
+    try {
+      const cache = await rebuildCacheFromRelays(relays, pubkey);
+      return cache;
+    } catch (e) {
+      console.warn(`⚠ Failed to rebuild cache from relays: ${e.message}`);
+    }
+  }
+  
+  // Default: Empty cache
+  console.log("📦 Starting with empty cache\n");
   return {
     assets: {},
     manifests: {},
@@ -123,16 +151,41 @@ function loadEventCache(siteDir) {
 
 /**
  * Load version history
+ * First tries local file, then falls back to querying relays
+ * 
+ * @param {string} siteDir - Site directory path
+ * @param {Array} relays - Array of relay URLs (for fallback)
+ * @param {string} pubkey - Public key (for fallback query)
+ * @param {boolean} forceRebuild - If true, skip local file and query relays
+ * @returns {Promise<Object>} Version history object
  */
-function loadVersionHistory(siteDir) {
+async function loadVersionHistory(siteDir, relays = null, pubkey = null, forceRebuild = false) {
   const versionPath = path.join(siteDir, ".nweb-versions.json");
-  if (fs.existsSync(versionPath)) {
+  
+  // Try local file first (unless force rebuild)
+  if (!forceRebuild && fs.existsSync(versionPath)) {
     try {
-      return JSON.parse(fs.readFileSync(versionPath, "utf8"));
+      const history = JSON.parse(fs.readFileSync(versionPath, "utf8"));
+      console.log("📜 Loaded version history from local file\n");
+      return history;
     } catch (e) {
       console.warn(`⚠ Failed to read version history: ${e.message}`);
     }
   }
+  
+  // Fallback: Query relays if we have connection info
+  if (relays && relays.length > 0 && pubkey) {
+    console.log("📡 Version history not found, querying Nostr relays...\n");
+    try {
+      const history = await queryVersionHistory(relays, pubkey);
+      return history;
+    } catch (e) {
+      console.warn(`⚠ Failed to rebuild version history from relays: ${e.message}`);
+    }
+  }
+  
+  // Default: Empty history
+  console.log("📜 Starting with empty version history\n");
   return {
     current: "0.1.0",
     versions: [],
@@ -145,6 +198,32 @@ function loadVersionHistory(siteDir) {
 function saveVersionHistory(siteDir, history) {
   const versionPath = path.join(siteDir, ".nweb-versions.json");
   fs.writeFileSync(versionPath, JSON.stringify(history, null, 2));
+}
+
+/**
+ * Parse and validate semantic version string
+ * @param {string} versionStr - Version string in format X.Y.Z
+ * @returns {string|null} - Valid version string or null if invalid
+ */
+function parseVersion(versionStr) {
+  if (!versionStr || typeof versionStr !== 'string') {
+    return null;
+  }
+  
+  const parts = versionStr.split('.');
+  if (parts.length !== 3) {
+    return null;
+  }
+  
+  const [major, minor, patch] = parts;
+  
+  // Check if all parts are valid numbers
+  if (!/^\d+$/.test(major) || !/^\d+$/.test(minor) || !/^\d+$/.test(patch)) {
+    return null;
+  }
+  
+  // Return normalized version
+  return `${parseInt(major)}.${parseInt(minor)}.${parseInt(patch)}`;
 }
 
 /**
@@ -496,10 +575,15 @@ async function main() {
 Deploy your website to Nostr relays.
 Publishes HTML, CSS, JS, and media files as Nostr events.
 
-Usage: nweb deploy <site-folder>
+Usage: nweb deploy <site-folder> [options]
 
 Arguments:
   site-folder       Path to your website directory (required)
+
+Options:
+  --version=X.Y.Z   Set a custom version (e.g., --version=2.0.0)
+  --rebuild-cache   Query relays to rebuild cache (ignore local files)
+  -h, --help        Show this help message
 
 Examples:
   # Deploy current directory
@@ -508,6 +592,12 @@ Examples:
   # Deploy specific folder
   nweb deploy ./my-site
   nweb deploy examples/hello-world
+  
+  # Set a custom version
+  nweb deploy . --version=2.0.0
+  
+  # Force rebuild cache from relays
+  nweb deploy . --rebuild-cache
 
 Requirements:
   - NOSTR_SK_HEX in .env (or generates new keypair)
@@ -541,11 +631,31 @@ What it does:
 
   // Load other configuration
   const { relays, host } = readEnv();
-  const conns = await connectRelays(relays);
+  const relayUrls = parseRelayUrls(relays);
+  const conns = await connectRelays(relayUrls);
 
-  // Load cache from previous publish
-  console.log("📦 Loading cache from previous publish...");
-  const cache = loadEventCache(siteDir);
+  // Check for --rebuild-cache flag
+  const forceRebuild = process.argv.includes("--rebuild-cache");
+  if (forceRebuild) {
+    console.log("🔄 Rebuilding cache from relays...\n");
+  }
+
+  // Check for --version flag
+  let customVersion = null;
+  const versionArg = process.argv.find(arg => arg.startsWith('--version='));
+  if (versionArg) {
+    const versionStr = versionArg.split('=')[1];
+    customVersion = parseVersion(versionStr);
+    if (!customVersion) {
+      console.error(`\n❌ Error: Invalid version format "${versionStr}"`);
+      console.error('   Expected format: X.Y.Z (e.g., 1.0.0, 2.3.1)\n');
+      process.exit(1);
+    }
+    console.log(`\n📌 Using custom version: ${customVersion}`);
+  }
+
+  // Load cache from previous publish (or query relays)
+  const cache = await loadEventCache(siteDir, relayUrls, pubkey, forceRebuild);
   let assetsReused = 0;
   let assetsPublished = 0;
 
@@ -768,8 +878,8 @@ What it does:
     console.log(`   - ${route} → ${routes[route]}`);
   }
 
-  // Load version history
-  const versionHistory = loadVersionHistory(siteDir);
+  // Load version history (or query relays)
+  const versionHistory = await loadVersionHistory(siteDir, relayUrls, pubkey, forceRebuild);
 
   // Build preliminary site index content to check for changes
   const preliminarySiteIndexContent = JSON.stringify({
@@ -778,19 +888,32 @@ What it does:
     notFoundRoute: routes["/404"] || null,
   });
 
-  // Detect change type and increment version
-  const changeType = detectChangeType(
-    cache,
-    manifestEvents,
-    preliminarySiteIndexContent
-  );
-  const newVersion = cache.siteIndex
-    ? incrementVersion(versionHistory.current, changeType)
-    : versionHistory.current;
+  // Determine version: use custom if provided, otherwise auto-increment
+  let newVersion;
+  let changeType;
+  
+  if (customVersion) {
+    // User specified custom version
+    newVersion = customVersion;
+    changeType = 'manual';
+    console.log(
+      `   Version: ${versionHistory.current} → ${newVersion} (custom)`
+    );
+  } else {
+    // Auto-increment version based on changes
+    changeType = detectChangeType(
+      cache,
+      manifestEvents,
+      preliminarySiteIndexContent
+    );
+    newVersion = cache.siteIndex
+      ? incrementVersion(versionHistory.current, changeType)
+      : versionHistory.current;
 
-  console.log(
-    `   Version: ${versionHistory.current} → ${newVersion} (${changeType} update)`
-  );
+    console.log(
+      `   Version: ${versionHistory.current} → ${newVersion} (${changeType} update)`
+    );
+  }
 
   // Build site index content with version
   // IMPORTANT: Only include content-addressable data (routes)
@@ -1004,11 +1127,11 @@ What it does:
     });
 
     if (successfulRelays.length === 0) {
-      console.warn(`\n⚠️  WARNING: No relays with 100% success rate!`);
+      console.warn(`\n⚠️  Warning: No relays achieved 100% success rate.`);
       console.warn(
         `   DNS record will include all configured relays as fallback.`
       );
-      console.warn(`   However, your site may not be fully accessible.\n`);
+      console.warn(`   Site accessibility may be limited until issues are resolved.\n`);
     }
 
     // Use successful relays, or all relays as fallback if none succeeded completely
@@ -1153,14 +1276,16 @@ ${"=".repeat(70)}
     console.log(
       `Quick Reference - OPTION 1 (Standard Escaping):\n${standardEscaping}\n`
     );
-    console.log(`\n🎉 GREAT NEWS: You only need to set DNS ONCE!`);
+    console.log(`\n📌 DNS Configuration Note:`);
     console.log(
-      `   After initial DNS setup, republish as many times as you want.`
+      `   DNS setup is required only once during initial deployment.`
     );
     console.log(
-      `   Clients automatically fetch the latest version from relays.`
+      `   Future updates are published directly to relays without DNS changes.`
     );
-    console.log(`   No DNS updates needed!\n`);
+    console.log(
+      `   Clients automatically retrieve the latest version from Nostr relays.\n`
+    );
 
     // Show relay inclusion status
     if (relaysForDNS.length < relays.length) {
@@ -1361,20 +1486,20 @@ ${"=".repeat(70)}
 
     // Exit with appropriate code
     if (hasCriticalFailures) {
-      console.log(`❌ Publishing completed with CRITICAL issues (exit code 1)`);
+      console.log(`❌ Deployment completed with critical errors (exit code 1)`);
       console.log(
-        `   Some relays failed completely. Review corrective actions above.\n`
+        `   Multiple relay failures detected. Review corrective actions above.\n`
       );
       process.exit(1);
     } else {
-      console.log(`⚠️  Publishing completed with warnings (exit code 0)`);
+      console.log(`⚠️  Deployment completed with warnings (exit code 0)`);
       console.log(
-        `   Minor issues detected. Site is published but review recommendations.\n`
+        `   Minor issues detected. Site published successfully with some relay failures.\n`
       );
       process.exit(0);
     }
   } else {
-    console.log(`✅ All relays operating normally - No issues detected!\n`);
+    console.log(`✅ Deployment successful - All relays operational.\n`);
     process.exit(0);
   }
 }
