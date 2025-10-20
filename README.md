@@ -10,8 +10,8 @@
 
 **Browser Extension:** To view sites published with `nw-publisher`, install the Nostr Web Browser extension:
 
-- **Chrome:** https://chromewebstore.google.com/detail/nostr-web-browser/hhdngjdmlabdachflbdfapkogadodkif
-- **Firefox:** https://addons.mozilla.org/en-US/firefox/addon/nostr-web-browser/
+- **Chrome:** <https://chromewebstore.google.com/detail/nostr-web-browser/hhdngjdmlabdachflbdfapkogadodkif>
+- **Firefox:** <https://addons.mozilla.org/en-US/firefox/addon/nostr-web-browser/>
 
 ---
 
