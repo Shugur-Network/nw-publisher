@@ -1,12 +1,12 @@
-# Nostr Web Publisher (nweb)
+# Nostr Web Publisher
 
-[![npm version](https://img.shields.io/npm/v/nw-publish.svg)](https://www.npmjs.com/package/nw-publish)
-[![npm downloads](https://img.shields.io/npm/dm/nw-publish.svg)](https://www.npmjs.com/package/nw-publish)
+[![npm version](https://img.shields.io/npm/v/nw-publisher.svg)](https://www.npmjs.com/package/nw-publisher)
+[![npm downloads](https://img.shields.io/npm/dm/nw-publisher.svg)](https://www.npmjs.com/package/nw-publisher)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > 🚀 **Publish and manage static websites on the Nostr network** - Deploy, version, monitor, and maintain decentralized websites with a comprehensive CLI toolkit.
 
-**Nostr Web Publisher** (`nweb`) is a full-featured CLI tool for managing static websites on Nostr. Deploy sites as signed Nostr events, track versions, monitor relay status, sync across relays, and clean up old deployments - all from one command-line interface.
+**Nostr Web Publisher** (`nw-publisher`) is a full-featured CLI tool for managing static websites on Nostr. Deploy sites as signed Nostr events, track versions, monitor relay status, sync across relays, and clean up old deployments - all from one command-line interface.
 
 **Browser Extension:** To view sites published with `nweb`, install the Nostr Web Browser extension:
 
@@ -59,7 +59,7 @@ npm link
 ### 1. Install
 
 ```bash
-npm install -g nw-publish
+npm install -g nw-publisher
 ```
 
 ### 2. Create Your Site
@@ -88,7 +88,7 @@ echo "RELAYS=wss://relay.damus.io,wss://nos.lol" >> .env
 ### 4. Deploy Your Site
 
 ```bash
-nweb deploy .
+nw-publisher deploy .
 ```
 
 ### 5. Set Up DNS (Optional)

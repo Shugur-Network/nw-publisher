@@ -120,12 +120,12 @@ function showHelp(command = null) {
 
   console.log(`
 ╔═══════════════════════════════════════════════════════════════════╗
-║                      NOSTR WEB CLI (nweb)                         ║
+║                  NOSTR WEB PUBLISHER (nw-publisher)               ║
 ║              Deploy Static Websites to Nostr Network              ║
 ╚═══════════════════════════════════════════════════════════════════╝
 
 USAGE
-  nweb <command> [options]
+  nw-publisher <command> [options]
 
 COMMANDS
   deploy <dir>             Deploy website to Nostr relays
@@ -140,28 +140,28 @@ OPTIONS
 
 EXAMPLES
   # Deploy a site
-  nweb deploy ./my-site
-  nweb deploy examples/hello-world
+  nw-publisher deploy ./my-site
+  nw-publisher deploy examples/hello-world
 
   # Check status
-  nweb status
-  nweb status npub1...
+  nw-publisher status
+  nw-publisher status npub1...
 
   # Version management
-  nweb versions list
-  nweb versions show 1.0.0
-  nweb versions compare 0.9.0 1.0.0
+  nw-publisher versions list
+  nw-publisher versions show 1.0.0
+  nw-publisher versions compare 0.9.0 1.0.0
 
   # Maintenance
-  nweb sync                      # Sync versions across relays
-  nweb cleanup --version 0.1.0   # Remove specific version
-  nweb cleanup --orphans         # Remove orphaned events
-  nweb cleanup --all             # Full reset
+  nw-publisher sync                      # Sync versions across relays
+  nw-publisher cleanup --version 0.1.0   # Remove specific version
+  nw-publisher cleanup --orphans         # Remove orphaned events
+  nw-publisher cleanup --all             # Full reset
 
 SETUP
   1. Create .env file with NOSTR_SK_HEX and RELAYS
   2. Create your HTML/CSS/JS files
-  3. Run: nweb deploy .
+  3. Run: nw-publisher deploy .
 
   Need a keypair? Generate with:
     node -e "const k = require('nostr-tools'); const sk = k.generateSecretKey(); console.log(Buffer.from(sk).toString('hex'));"
@@ -178,7 +178,7 @@ function showVersion() {
   const packageJson = JSON.parse(
     fs.readFileSync(join(__dirname, "package.json"), "utf8")
   );
-  console.log(`nweb v${packageJson.version}`);
+  console.log(`nw-publisher v${packageJson.version}`);
 }
 
 /**

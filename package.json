@@ -1,21 +1,21 @@
 {
-  "name": "nw-publish",
+  "name": "nw-publisher",
   "version": "1.2.0",
-  "description": "Nostr Web CLI - Tool for Nostr website management (deploy, version control, monitoring)",
+  "description": "Nostr Web Publisher - CLI tool for deploying and managing static websites on Nostr",
   "type": "module",
-  "main": "./nweb.mjs",
+  "main": "./nw-publisher.mjs",
   "bin": {
-    "nweb": "nweb.mjs"
+    "nw-publisher": "nw-publisher.mjs"
   },
   "files": [
-    "nweb.mjs",
+    "nw-publisher.mjs",
     "src/**/*.mjs",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
-    "postinstall": "node -e \"console.log('\\\\n✅ Nostr Web CLI installed!\\\\n\\\\nGet started:\\\\n  1. Create .env with NOSTR_SK_HEX and RELAYS\\\\n  2. Create your HTML/CSS/JS files\\\\n  3. nweb deploy .\\\\n\\\\nNeed a keypair? Run:\\\\n  node -e \\\\\"const k = require(\\'nostr-tools\\'); const sk = k.generateSecretKey(); console.log(Buffer.from(sk).toString(\\'hex\\'))\\\\\"\\\\n\\\\nDocumentation: https://github.com/Shugur-Network/nw-publisher\\\\n')\"",
+    "postinstall": "node -e \"console.log('\\\\n✅ Nostr Web Publisher installed!\\\\n\\\\nGet started:\\\\n  1. Create .env with NOSTR_SK_HEX and RELAYS\\\\n  2. Create your HTML/CSS/JS files\\\\n  3. nw-publisher deploy .\\\\n\\\\nNeed a keypair? Run:\\\\n  node -e \\\\\"const k = require(\\'nostr-tools\\'); const sk = k.generateSecretKey(); console.log(Buffer.from(sk).toString(\\'hex\\'))\\\\\"\\\\n\\\\nDocumentation: https://github.com/Shugur-Network/nw-publisher\\\\n')\"",
     "test": "node --test test/cli.test.mjs test/relay.test.mjs",
     "test:unit": "node --test test/cli.test.mjs test/relay.test.mjs",
     "test:integration": "node test/integration.test.mjs",
