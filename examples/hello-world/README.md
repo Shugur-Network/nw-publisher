@@ -57,7 +57,9 @@ _nweb.example.com  TXT  "<json-content>"
 
 ## Testing
 
-1. Install the Nostr Web Browser extension
+1. **Install the Nostr Web Browser extension**
+   - Chrome: https://chromewebstore.google.com/detail/nostr-web-browser/hhdngjdmlabdachflbdfapkogadodkif
+   - Firefox: https://addons.mozilla.org/en-US/firefox/addon/nostr-web-browser/
 2. Navigate to your domain
 3. Extension detects `_nweb.<domain>` record
 4. Site loads from Nostr relays

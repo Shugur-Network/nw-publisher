@@ -8,6 +8,11 @@
 
 **Nostr Web Publisher** (`nweb`) is a full-featured CLI tool for managing static websites on Nostr. Deploy sites as signed Nostr events, track versions, monitor relay status, sync across relays, and clean up old deployments - all from one command-line interface.
 
+**Browser Extension:** To view sites published with `nweb`, install the Nostr Web Browser extension:
+
+- **Chrome:** https://chromewebstore.google.com/detail/nostr-web-browser/hhdngjdmlabdachflbdfapkogadodkif
+- **Firefox:** https://addons.mozilla.org/en-US/firefox/addon/nostr-web-browser/
+
 ---
 
 ## Features
@@ -427,7 +432,8 @@ nweb deploy <site-folder>
 1. DNS TXT record at `_nweb.<yourdomain.com>`
 2. JSON format valid
 3. Pubkey in DNS matches events
-4. Extension v0.9.6+ (fetches site index fresh)
+4. Nostr Web Browser extension installed ([Chrome](https://chromewebstore.google.com/detail/nostr-web-browser/hhdngjdmlabdachflbdfapkogadodkif) / [Firefox](https://addons.mozilla.org/en-US/firefox/addon/nostr-web-browser/))
+5. Extension v0.9.6+ (fetches site index fresh)
 
 **Reset:** If site is inconsistent, use cleanup tool:
 
