@@ -1,17 +1,33 @@
 # Nostr Web Publisher
 
-[![npm version](https://img.shields.io/npm/v/nw-publisher.svg)](https://www.npmjs.com/package/nw-publisher)
-[![npm downloads](https://img.shields.io/npm/dm/nw-publisher.svg)](https://www.npmjs.com/package/nw-publisher)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![npm version](https://img.shields.io/npm/v/nw-publisher.svg?style=flat-square)](https://www.npmjs.com/package/nw-publisher)
+[![npm downloads](https://img.shields.io/npm/dm/nw-publisher.svg?style=flat-square)](https://www.npmjs.com/package/nw-publisher)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 > 🚀 **Publish and manage static websites on the Nostr network** - Deploy, version, monitor, and maintain decentralized websites with a comprehensive CLI toolkit.
 
 **Nostr Web Publisher** (`nw-publisher`) is a full-featured CLI tool for managing static websites on Nostr. Deploy sites as signed Nostr events, track versions, monitor relay status, sync across relays, and clean up old deployments - all from one command-line interface.
 
-**Browser Extension:** To view sites published with `nw-publisher`, install the Nostr Web Browser extension:
+---
 
-- **Chrome:** <https://chromewebstore.google.com/detail/nostr-web-browser/hhdngjdmlabdachflbdfapkogadodkif>
-- **Firefox:** <https://addons.mozilla.org/en-US/firefox/addon/nostr-web-browser/>
+## 🌐 Browser Extension
+
+To view sites published with `nw-publisher`, install the **Nostr Web Browser** extension:
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <a href="https://chromewebstore.google.com/detail/nostr-web-browser/hhdngjdmlabdachflbdfapkogadodkif">
+        <img src="https://img.shields.io/badge/Chrome-4285F4?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Chrome Web Store" />
+      </a>
+    </td>
+    <td align="center" width="50%">
+      <a href="https://addons.mozilla.org/en-US/firefox/addon/nostr-web-browser/">
+        <img src="https://img.shields.io/badge/Firefox-FF7139?style=for-the-badge&logo=firefox&logoColor=white" alt="Firefox Add-ons" />
+      </a>
+    </td>
+  </tr>
+</table>
 
 ---
 
