@@ -160,7 +160,7 @@ To clean up manually:
 rm -rf test-site-*
 
 # Delete events from relays
-NOSTR_SK_HEX=<test-key> RELAYS=<relays> nweb cleanup
+NOSTR_SK_HEX=<test-key> RELAYS=<relays> nw-publisher cleanup
 ```
 
 ## Debugging Tests

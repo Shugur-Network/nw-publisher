@@ -100,7 +100,7 @@ function showHelpMessage() {
 Remove events from Nostr relays - clean up everything, orphaned data, or a specific version.
 Requires NOSTR_SK_HEX in .env to sign deletion events.
 
-Usage: nweb cleanup [options]
+Usage: nw-publisher cleanup [options]
 
 Options:
   --all, -a                Delete all events (default)
@@ -112,22 +112,22 @@ Options:
 
 Examples:
   # Delete all events from all relays
-  nweb cleanup
+  nw-publisher cleanup
 
   # Delete only orphaned events
-  nweb cleanup --orphans
+  nw-publisher cleanup --orphans
 
   # Delete a specific version
-  nweb cleanup --version 0.1.0
+  nw-publisher cleanup --version 0.1.0
 
   # Delete from specific relay
-  nweb cleanup --relay wss://relay.example.com
+  nw-publisher cleanup --relay wss://relay.example.com
 
   # Delete orphans from specific relay
-  nweb cleanup --orphans --relay wss://relay.example.com
+  nw-publisher cleanup --orphans --relay wss://relay.example.com
   
   # Preview what would be deleted (dry run)
-  nweb cleanup --version 0.2.0 --dry-run
+  nw-publisher cleanup --version 0.2.0 --dry-run
 
 What it does:
   ALL MODE (--all):
@@ -167,11 +167,11 @@ What are orphans?
     - Testing/debugging
 
 Use cases:
-  - Full reset: nweb cleanup
-  - Remove old version: nweb cleanup --version 0.1.0
-  - Fix corrupted relay: nweb cleanup --orphans --relay wss://relay.com
-  - Remove test data: nweb cleanup --relay wss://test-relay.com
-  - Clean up before major refactor: nweb cleanup --all
+  - Full reset: nw-publisher cleanup
+  - Remove old version: nw-publisher cleanup --version 0.1.0
+  - Fix corrupted relay: nw-publisher cleanup --orphans --relay wss://relay.com
+  - Remove test data: nw-publisher cleanup --relay wss://test-relay.com
+  - Clean up before major refactor: nw-publisher cleanup --all
 `);
 }
 
@@ -522,7 +522,7 @@ async function performVersionCleanup(pubkey, relays, skHex, version, dryRun) {
 
   if (!targetSiteIndex) {
     throw new ValidationError(
-      `Version ${version} not found. Use 'nweb versions list' to see available versions.`
+      `Version ${version} not found. Use 'nw-publisher versions list' to see available versions.`
     );
   }
 

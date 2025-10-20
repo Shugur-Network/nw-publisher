@@ -23,7 +23,7 @@ NC='\033[0m' # No Color
 # Configuration
 TEST_DIR="./test-site-$(date +%s)"
 TEST_RELAYS="wss://relay.nostr.band,wss://nos.lol"
-NWEB_CMD="node ./nweb.mjs"
+NWEB_CMD="node ./nw-publisher.mjs"
 
 echo -e "${BLUE}╔═══════════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║    NOSTR WEB PUBLISHER - MANUAL INTEGRATION TEST          ║${NC}"
@@ -252,7 +252,7 @@ else
     echo ""
     echo "To clean up later, run:"
     echo "  rm -rf $TEST_DIR"
-    echo "  NOSTR_SK_HEX=$TEST_SK RELAYS=$TEST_RELAYS nweb cleanup"
+    echo "  NOSTR_SK_HEX=$TEST_SK RELAYS=$TEST_RELAYS nw-publisher cleanup"
     echo ""
 fi
 

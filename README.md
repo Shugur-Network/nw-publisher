@@ -8,7 +8,7 @@
 
 **Nostr Web Publisher** (`nw-publisher`) is a full-featured CLI tool for managing static websites on Nostr. Deploy sites as signed Nostr events, track versions, monitor relay status, sync across relays, and clean up old deployments - all from one command-line interface.
 
-**Browser Extension:** To view sites published with `nweb`, install the Nostr Web Browser extension:
+**Browser Extension:** To view sites published with `nw-publisher`, install the Nostr Web Browser extension:
 
 - **Chrome:** https://chromewebstore.google.com/detail/nostr-web-browser/hhdngjdmlabdachflbdfapkogadodkif
 - **Firefox:** https://addons.mozilla.org/en-US/firefox/addon/nostr-web-browser/
@@ -39,7 +39,7 @@ Install globally from npm:
 npm install -g nw-publish
 ```
 
-This installs the `nweb` command globally.
+This installs the `nw-publisher` command globally.
 
 ### From Source
 
@@ -157,7 +157,7 @@ All assets include SHA256 tags for verification:
 
 ### Core Commands
 
-#### `nweb deploy <site-folder>`
+#### `nw-publisher deploy <site-folder>`
 
 Deploy your website to Nostr relays.
 
@@ -168,15 +168,15 @@ Deploy your website to Nostr relays.
 
 ```bash
 # Basic deployment
-nweb deploy .
-nweb deploy ./my-site
-nweb deploy examples/hello-world
+nw-publisher deploy .
+nw-publisher deploy ./my-site
+nw-publisher deploy examples/hello-world
 
 # Deploy with custom version
-nweb deploy . --version=2.0.0
+nw-publisher deploy . --version=2.0.0
 
 # Rebuild cache from relays
-nweb deploy . --rebuild-cache
+nw-publisher deploy . --rebuild-cache
 ```
 
 **Version Management:**
@@ -186,47 +186,47 @@ nweb deploy . --rebuild-cache
   - **minor** (0.x.0): New routes added/removed
 - With `--version`: Uses your specified version (format: X.Y.Z)
 
-#### `nweb status [npub|hex]`
+#### `nw-publisher status [npub|hex]`
 
 Check relay connectivity and deployment status.
 
 ```bash
 # Your site (uses .env)
-nweb status
+nw-publisher status
 
 # Another site (no private key needed)
-nweb status npub1abc123...
+nw-publisher status npub1abc123...
 ```
 
-#### `nweb versions <command> [npub|hex]`
+#### `nw-publisher versions <command> [npub|hex]`
 
 Manage and query site versions.
 
 ```bash
-nweb versions list
-nweb versions show 1.0.0
-nweb versions compare 0.9.0 1.0.0
-nweb versions list npub1abc123...
+nw-publisher versions list
+nw-publisher versions show 1.0.0
+nw-publisher versions compare 0.9.0 1.0.0
+nw-publisher versions list npub1abc123...
 ```
 
-#### `nweb sync`
+#### `nw-publisher sync`
 
 Ensure all versions exist on all configured relays.
 
 ```bash
-nweb sync
+nw-publisher sync
 ```
 
-#### `nweb cleanup [options]`
+#### `nw-publisher cleanup [options]`
 
 Remove events from Nostr relays (all events, orphaned events, or a specific version).
 
 ```bash
-nweb cleanup                    # Delete all events (with confirmation)
-nweb cleanup --version 0.1.0    # Delete a specific version
-nweb cleanup --orphans          # Delete orphaned events only
-nweb cleanup --dry-run          # Preview without deleting
-nweb cleanup --relay wss://...  # Target specific relay(s)
+nw-publisher cleanup                    # Delete all events (with confirmation)
+nw-publisher cleanup --version 0.1.0    # Delete a specific version
+nw-publisher cleanup --orphans          # Delete orphaned events only
+nw-publisher cleanup --dry-run          # Preview without deleting
+nw-publisher cleanup --relay wss://...  # Target specific relay(s)
 ```
 
 **Options:**
@@ -242,40 +242,40 @@ nweb cleanup --relay wss://...  # Target specific relay(s)
 #### Deploy a Website
 
 ```bash
-nweb deploy .
+nw-publisher deploy .
 ```
 
 #### Check Status
 
 ```bash
 # Your own site
-nweb status
+nw-publisher status
 
 # Another site
-nweb status npub1abc123...
+nw-publisher status npub1abc123...
 ```
 
 #### Sync Across Relays
 
 ```bash
 # After adding new relays
-nweb sync
+nw-publisher sync
 ```
 
 #### Clean Up Old Deployments
 
 ```bash
 # Preview what will be deleted
-nweb cleanup --orphans --dry-run
+nw-publisher cleanup --orphans --dry-run
 
 # Delete orphaned events
-nweb cleanup --orphans
+nw-publisher cleanup --orphans
 
 # Delete a specific version
-nweb cleanup --version 0.1.0
+nw-publisher cleanup --version 0.1.0
 
 # Delete version from specific relay
-nweb cleanup --version 0.2.0 --relay wss://relay.example.com
+nw-publisher cleanup --version 0.2.0 --relay wss://relay.example.com
 ```
 
 ---
@@ -333,7 +333,7 @@ my-site/
 
 ## Deployment Architecture
 
-`nweb` queries relays on every deployment to check for existing assets and versions:
+`nw-publisher` queries relays on every deployment to check for existing assets and versions:
 
 - **Asset deduplication**: Content-addressed matching (SHA256) prevents re-uploading unchanged files
 - **Version history**: Reconstructed from site index events (kind 31126) on relays
@@ -365,16 +365,16 @@ If you need to reset your site, remove old versions, or clean up orphaned events
 
 ```bash
 # Delete everything (full reset)
-nweb cleanup --all
+nw-publisher cleanup --all
 
 # Delete a specific version
-nweb cleanup --version 0.1.0
+nw-publisher cleanup --version 0.1.0
 
 # Delete orphaned events only
-nweb cleanup --orphans
+nw-publisher cleanup --orphans
 
 # Preview without deleting
-nweb cleanup --version 0.2.0 --dry-run
+nw-publisher cleanup --version 0.2.0 --dry-run
 ```
 
 This will:
@@ -391,7 +391,7 @@ This will:
 - **`--version <ver>`**: Delete a specific version and its assets
 - **`--orphans`**: Delete only unreferenced events (orphaned assets/manifests)
 
-See the cleanup help for more details: `nweb cleanup --help`
+See the cleanup help for more details: `nw-publisher cleanup --help`
 
 ### "Cannot find module 'nostr-tools'"
 
@@ -417,12 +417,12 @@ echo "NOSTR_SK_HEX=your_hex_key_here" > .env
 
 ```bash
 # Option 1: Clean up orphans only
-nweb cleanup --orphans
-nweb deploy <site-folder>
+nw-publisher cleanup --orphans
+nw-publisher deploy <site-folder>
 
 # Option 2: Full reset
-nweb cleanup --all
-nweb deploy <site-folder>
+nw-publisher cleanup --all
+nw-publisher deploy <site-folder>
 ```
 
 ### Site Not Loading
@@ -439,12 +439,12 @@ nweb deploy <site-folder>
 
 ```bash
 # Clean up orphans
-nweb cleanup --orphans
-nweb deploy <site-folder>
+nw-publisher cleanup --orphans
+nw-publisher deploy <site-folder>
 
 # Or do a full reset
-nweb cleanup --all
-nweb deploy <site-folder>
+nw-publisher cleanup --all
+nw-publisher deploy <site-folder>
 ```
 
 ---

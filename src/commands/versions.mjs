@@ -410,7 +410,7 @@ async function main() {
 
 Manage site versions - list, show, compare, and track version history.
 
-Usage: nweb versions <command> [npub|hex] [options]
+Usage: nw-publisher versions <command> [npub|hex] [options]
 
 Commands:
   list                           List all versions from relays
@@ -424,18 +424,18 @@ Arguments:
 
 Examples:
   # Use .env configuration
-  nweb versions list
-  nweb versions show 0.2.0
-  nweb versions compare 0.1.0 0.2.0
-  nweb versions current
+ nw-publisher versions list
+ nw-publisher versions show 0.2.0
+ nw-publisher versions compare 0.1.0 0.2.0
+ nw-publisher versions current
   
   # Query any site by npub (no private key needed!)
-  nweb versions list npub1...
-  nweb versions show npub1... 0.2.0
-  nweb versions compare npub1... 0.1.0 0.2.0
+ nw-publisher versions list npub1...
+ nw-publisher versions show npub1... 0.2.0
+ nw-publisher versions compare npub1... 0.1.0 0.2.0
   
   # Query by hex pubkey
-  nweb versions list a1b2c3d4e5f6...
+ nw-publisher versions list a1b2c3d4e5f6...
 `);
       return;
     }
@@ -485,7 +485,7 @@ Examples:
       case "show":
         if (adjustedArgs.length === 0) {
           throw new ValidationError(
-            "Please specify a version. Usage: nweb versions show [npub|hex|site] <version>"
+            "Please specify a version. Usage: nw-publisher versions show [npub|hex|site] <version>"
           );
         }
         await showVersion(pubkey, npub, adjustedArgs[0]);
@@ -494,7 +494,7 @@ Examples:
       case "compare":
         if (adjustedArgs.length < 2) {
           throw new ValidationError(
-            "Please specify two versions. Usage: nweb versions compare [npub|hex|site] <version1> <version2>"
+            "Please specify two versions. Usage: nw-publisher versions compare [npub|hex|site] <version1> <version2>"
           );
         }
         await compareVersions(pubkey, npub, adjustedArgs[0], adjustedArgs[1]);

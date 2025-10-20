@@ -7,7 +7,7 @@ import { dirname, join } from "node:path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = join(__dirname, "..");
-const nwebPath = join(projectRoot, "nweb.mjs");
+const nwebPath = join(projectRoot, "nw-publisher.mjs");
 
 /**
  * Helper to run CLI command and capture output
@@ -59,7 +59,7 @@ test("CLI version command", async () => {
   assert.equal(result.code, 0, "Version should exit with code 0");
   assert.match(
     result.stdout,
-    /nweb v\d+\.\d+\.\d+/,
+    /nw-publisher v\d+\.\d+\.\d+/,
     "Version should show version number"
   );
 });
@@ -71,8 +71,8 @@ test("deploy command shows usage when no args", async () => {
   const output = result.stdout + result.stderr;
   assert.match(
     output,
-    /Usage: nweb deploy/,
-    "Deploy should show correct nweb deploy usage"
+    /Usage:nw-publisherdeploy/,
+    "Deploy should show correctnw-publisherdeploy usage"
   );
 });
 
@@ -81,8 +81,8 @@ test("cleanup command shows help", async () => {
   assert.equal(result.code, 0, "Cleanup help should exit with code 0");
   assert.match(
     result.stdout,
-    /Usage: nweb cleanup/,
-    "Should use standardized nweb command format"
+    /Usage:nw-publishercleanup/,
+    "Should use standardizednw-publishercommand format"
   );
   assert.match(result.stdout, /Cleanup/, "Cleanup help should mention cleanup");
 });
@@ -92,8 +92,8 @@ test("sync command shows help", async () => {
   assert.equal(result.code, 0, "Sync help should exit with code 0");
   assert.match(
     result.stdout,
-    /Usage: nweb sync/,
-    "Should use standardized nweb command format"
+    /Usage:nw-publishersync/,
+    "Should use standardizednw-publishercommand format"
   );
   assert.match(result.stdout, /Sync/, "Sync help should mention sync");
 });
@@ -103,8 +103,8 @@ test("versions command shows help", async () => {
   assert.equal(result.code, 0, "Versions help should exit with code 0");
   assert.match(
     result.stdout,
-    /Usage: nweb versions/,
-    "Should use standardized nweb command format"
+    /Usage:nw-publisherversions/,
+    "Should use standardizednw-publishercommand format"
   );
   assert.match(
     result.stdout,
@@ -118,8 +118,8 @@ test("config command shows help", async () => {
   assert.equal(result.code, 0, "Config help should exit with code 0");
   assert.match(
     result.stdout,
-    /Usage: nweb config/,
-    "Should use standardized nweb command format"
+    /Usage:nw-publisherconfig/,
+    "Should use standardized nw-publisher command format"
   );
   assert.match(
     result.stdout,

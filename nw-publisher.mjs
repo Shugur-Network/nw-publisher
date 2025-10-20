@@ -18,15 +18,15 @@ const COMMANDS = {
   deploy: {
     alias: ["publish", "push"],
     description: "Deploy website to Nostr relays",
-    usage: "nweb deploy [site-folder]",
-    examples: ["nweb deploy ./my-site", "nweb deploy"],
+    usage: "nw-publisher deploy [site-folder]",
+    examples: ["nw-publisher deploy ./my-site", "nw-publisher deploy"],
   },
 
   // Version Control
   versions: {
     alias: ["version", "v"],
     description: "Manage site versions",
-    usage: "nweb versions <command> [options]",
+    usage: "nw-publisher versions <command> [options]",
     subcommands: {
       list: "List all published versions",
       show: "Show version details",
@@ -34,10 +34,10 @@ const COMMANDS = {
       current: "Show current version",
     },
     examples: [
-      "nweb versions list",
-      "nweb versions show 1.0.0",
-      "nweb versions compare 0.9.0 1.0.0",
-      "nweb versions current",
+      "nw-publisher versions list",
+      "nw-publisher versions show 1.0.0",
+      "nw-publisher versions compare 0.9.0 1.0.0",
+      "nw-publisher versions current",
     ],
   },
 
@@ -45,7 +45,7 @@ const COMMANDS = {
   cleanup: {
     alias: ["clean", "reset", "delete"],
     description: "Remove events from relays",
-    usage: "nweb cleanup [options]",
+    usage: "nw-publisher cleanup [options]",
     options: {
       "--all, -a": "Delete all events (default)",
       "--orphans, -o": "Delete only orphaned events",
@@ -54,11 +54,11 @@ const COMMANDS = {
       "--dry-run, -d": "Preview without deleting",
     },
     examples: [
-      "nweb cleanup",
-      "nweb cleanup --version 0.1.0",
-      "nweb cleanup --orphans",
-      "nweb cleanup --relay wss://relay.example.com",
-      "nweb cleanup --version 0.2.0 --dry-run",
+      "nw-publisher cleanup",
+      "nw-publisher cleanup --version 0.1.0",
+      "nw-publisher cleanup --orphans",
+      "nw-publisher cleanup --relay wss://relay.example.com",
+      "nw-publisher cleanup --version 0.2.0 --dry-run",
     ],
   },
 
@@ -66,16 +66,20 @@ const COMMANDS = {
   sync: {
     alias: ["synchronize"],
     description: "Ensure all versions exist on all relays",
-    usage: "nweb sync",
-    examples: ["nweb sync"],
+    usage: "nw-publisher sync",
+    examples: ["nw-publisher sync"],
   },
 
   // Status & Info
   status: {
     alias: ["info", "stat"],
     description: "Show site status and relay connectivity",
-    usage: "nweb status [npub|hex]",
-    examples: ["nweb status", "nweb status npub1...", "nweb status abc123..."],
+    usage: "nw-publisher status [npub|hex]",
+    examples: [
+      "nw-publisher status",
+      "nw-publisher status npub1...",
+      "nw-publisher status abc123...",
+    ],
   },
 };
 
@@ -267,7 +271,7 @@ async function main() {
 
   if (!actualCommand) {
     console.error(`❌ Unknown command: ${command}`);
-    console.log(`Run 'nweb help' for usage information`);
+    console.log(`Run 'nw-publisher help' for usage information`);
     process.exit(1);
   }
 
@@ -295,7 +299,7 @@ async function main() {
 
     default:
       console.error(`❌ Unknown command: ${actualCommand}`);
-      console.error(`   Run 'nweb --help' to see available commands`);
+      console.error(`   Run 'nw-publisher --help' to see available commands`);
       process.exit(1);
   }
 }

@@ -24,11 +24,11 @@ To publish this site to Nostr:
 
 ```bash
 # From the repository root
-nweb deploy examples/hello-world
+nw-publisher deploy examples/hello-world
 
 # Or from this directory
 cd examples/hello-world
-nweb deploy .
+nw-publisher deploy .
 ```
 
 This will:

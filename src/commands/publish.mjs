@@ -569,7 +569,7 @@ async function main() {
 Deploy your website to Nostr relays.
 Publishes HTML, CSS, JS, and media files as Nostr events.
 
-Usage: nweb deploy <site-folder> [options]
+Usage: nw-publisher deploy <site-folder> [options]
 
 Arguments:
   site-folder       Path to your website directory (required)
@@ -581,17 +581,17 @@ Options:
 
 Examples:
   # Deploy current directory
-  nweb deploy .
+  nw-publisher deploy .
   
   # Deploy specific folder
-  nweb deploy ./my-site
-  nweb deploy examples/hello-world
+  nw-publisher deploy ./my-site
+  nw-publisher deploy examples/hello-world
   
   # Set a custom version
-  nweb deploy . --version=2.0.0
+  nw-publisher deploy . --version=2.0.0
   
   # Force rebuild cache from relays
-  nweb deploy . --rebuild-cache
+  nw-publisher deploy . --rebuild-cache
 
 Requirements:
   - NOSTR_SK_HEX in .env (or generates new keypair)
@@ -610,7 +610,7 @@ What it does:
   }
 
   if (!siteDirArg) {
-    console.error("Usage: nweb deploy <site-folder>");
+    console.error("Usage: nw-publisher deploy <site-folder>");
     process.exit(1);
   }
   const siteDir = path.resolve(siteDirArg);

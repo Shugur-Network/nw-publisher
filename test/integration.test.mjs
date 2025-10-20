@@ -23,7 +23,7 @@ import { generateSecretKey, getPublicKey, nip19 } from "nostr-tools";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = join(__dirname, "..");
-const nwebPath = join(projectRoot, "nweb.mjs");
+const nwebPath = join(projectRoot, "nw-publisher.mjs");
 
 // Test configuration
 const TEST_RELAYS = ["wss://relay.nostr.band", "wss://nos.lol"];

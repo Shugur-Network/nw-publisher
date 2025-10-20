@@ -205,7 +205,7 @@ async function checkStatus(pubkeyArg = null) {
         logger.warn(`   ⚠️  TXT record found but invalid: ${dnsResult.error}`);
       } else {
         logger.error(`   ✗ No TXT record found for _nweb.${domain}`);
-        logger.info(`   Run 'nweb deploy' to generate DNS instructions`);
+        logger.info(`   Run 'nw-publisher deploy' to generate DNS instructions`);
       }
     }
 
@@ -238,7 +238,7 @@ async function main() {
 
 Check relay connectivity and deployment status for any Nostr site.
 
-Usage: nweb status [npub|hex]
+Usage: nw-publisher status [npub|hex]
 
 Arguments:
   npub              Query status by npub (e.g., npub1...)
@@ -246,13 +246,13 @@ Arguments:
 
 Examples:
   # Use .env configuration
-  nweb status
+  nw-publisher status
   
   # Query any site by npub (no private key needed!)
-  nweb status npub1abc123...
+  nw-publisher status npub1abc123...
   
   # Query by hex pubkey
-  nweb status a1b2c3d4e5f6...
+  nw-publisher status a1b2c3d4e5f6...
 
 What it checks:
   - Relay connectivity and latency

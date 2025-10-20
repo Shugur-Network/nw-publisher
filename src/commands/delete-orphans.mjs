@@ -403,7 +403,7 @@ async function main() {
 
 Deletes orphaned/incomplete events from specific relays.
 
-Usage: nweb delete-orphans [site-folder] [options]
+Usage: nw-publisher delete-orphans [site-folder] [options]
 
 Options:
   --relay <url>, -r <url>  Target specific relay (can be used multiple times)
@@ -411,13 +411,13 @@ Options:
 
 Examples:
   # Delete orphans from specific relay
-  nweb delete-orphans --relay wss://relay.example.com
+  nw-publisher delete-orphans --relay wss://relay.example.com
   
   # Delete orphans from multiple relays
-  nweb delete-orphans -r wss://relay1.com -r wss://relay2.com
+  nw-publisher delete-orphans -r wss://relay1.com -r wss://relay2.com
   
   # With site directory
-  nweb delete-orphans ./my-site --relay wss://relay.example.com
+  nw-publisher delete-orphans ./my-site --relay wss://relay.example.com
 
 What are orphans?
   - Assets not referenced by any manifest

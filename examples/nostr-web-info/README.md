@@ -138,9 +138,9 @@ nostr-web-info/
 2. **Publish the site:**
 
    ```bash
-   nweb deploy examples/nostr-web-info
+   nw-publisher deploy examples/nostr-web-info
    # Or from the example directory
-   cd examples/nostr-web-info && nweb deploy .
+   cd examples/nostr-web-info && nw-publisher deploy .
    ```
 
 3. **Add DNS record:**

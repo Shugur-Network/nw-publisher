@@ -145,7 +145,7 @@ Thumbs.db
   ENV_EXAMPLE: `# Nostr Web Configuration
 
 # Private key (hex format, 64 characters)
-# Generate with: nweb config generate
+# Generate with: nw-publisher config generate
 NOSTR_SK_HEX=
 
 # Relay URLs (comma-separated)

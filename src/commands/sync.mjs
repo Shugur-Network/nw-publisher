@@ -336,7 +336,7 @@ async function sync() {
 
     if (eventMap.size === 0) {
       logger.error(
-        "❌ No events found. Deploy your site first with: nweb deploy\n"
+        "❌ No events found. Deploy your site first with: nw-publisher deploy\n"
       );
       process.exit(0);
     }
@@ -442,11 +442,11 @@ Ensures all versions exist on all configured relays.
 Identifies missing events and republishes them.
 Requires NOSTR_SK_HEX in .env to sign and publish events.
 
-Usage: nweb sync
+Usage: nw-publisher sync
 
 Examples:
   # Sync using .env configuration
-  nweb sync
+ nw-publisher sync
 
 What it does:
   1. Queries all events from all configured relays
