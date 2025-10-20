@@ -49,8 +49,8 @@ function runCLI(args, options = {}) {
 test("CLI help command", async () => {
   const result = await runCLI(["--help"]);
   assert.equal(result.code, 0, "Help should exit with code 0");
-  assert.match(result.stdout, /NOSTR WEB CLI/, "Help should show CLI title");
-  assert.match(result.stdout, /CORE COMMANDS/, "Help should list commands");
+  assert.match(result.stdout, /NOSTR WEB PUBLISHER/, "Help should show CLI title");
+  assert.match(result.stdout, /COMMANDS/, "Help should list commands");
   assert.match(result.stdout, /deploy/, "Help should mention deploy command");
 });
 
@@ -71,8 +71,8 @@ test("deploy command shows usage when no args", async () => {
   const output = result.stdout + result.stderr;
   assert.match(
     output,
-    /Usage:nw-publisherdeploy/,
-    "Deploy should show correctnw-publisherdeploy usage"
+    /Usage:\s*nw-publisher\s+deploy/,
+    "Deploy should show correct nw-publisher deploy usage"
   );
 });
 
@@ -81,8 +81,8 @@ test("cleanup command shows help", async () => {
   assert.equal(result.code, 0, "Cleanup help should exit with code 0");
   assert.match(
     result.stdout,
-    /Usage:nw-publishercleanup/,
-    "Should use standardizednw-publishercommand format"
+    /Usage:\s*nw-publisher\s+cleanup/,
+    "Should use standardized nw-publisher command format"
   );
   assert.match(result.stdout, /Cleanup/, "Cleanup help should mention cleanup");
 });
@@ -92,8 +92,8 @@ test("sync command shows help", async () => {
   assert.equal(result.code, 0, "Sync help should exit with code 0");
   assert.match(
     result.stdout,
-    /Usage:nw-publishersync/,
-    "Should use standardizednw-publishercommand format"
+    /Usage:\s*nw-publisher\s+sync/,
+    "Should use standardized nw-publisher command format"
   );
   assert.match(result.stdout, /Sync/, "Sync help should mention sync");
 });
@@ -103,8 +103,8 @@ test("versions command shows help", async () => {
   assert.equal(result.code, 0, "Versions help should exit with code 0");
   assert.match(
     result.stdout,
-    /Usage:nw-publisherversions/,
-    "Should use standardizednw-publishercommand format"
+    /Usage:\s*nw-publisher\s+versions/,
+    "Should use standardized nw-publisher command format"
   );
   assert.match(
     result.stdout,
@@ -113,20 +113,7 @@ test("versions command shows help", async () => {
   );
 });
 
-test("config command shows help", async () => {
-  const result = await runCLI(["config", "--help"]);
-  assert.equal(result.code, 0, "Config help should exit with code 0");
-  assert.match(
-    result.stdout,
-    /Usage:nw-publisherconfig/,
-    "Should use standardized nw-publisher command format"
-  );
-  assert.match(
-    result.stdout,
-    /Configuration/,
-    "Config help should mention configuration"
-  );
-});
+// Removed config command test since config command was removed
 
 test.skip("status command shows status output (requires network)", async () => {
   // Skip: This test requires network connectivity to Nostr relays
