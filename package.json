@@ -15,7 +15,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "postinstall": "node -e \"console.log('\\\\n✅ Nostr Web CLI installed!\\\\n\\\\nGet started:\\\\n  nweb init my-site\\\\n  cd my-site\\\\n  nweb config generate\\\\n  nweb deploy\\\\n\\\\nDocumentation: https://github.com/Shugur-Network/nw-publisher\\\\n')\"",
+    "postinstall": "node -e \"console.log('\\\\n✅ Nostr Web CLI installed!\\\\n\\\\nGet started:\\\\n  1. Create .env with NOSTR_SK_HEX and RELAYS\\\\n  2. Create your HTML/CSS/JS files\\\\n  3. nweb deploy .\\\\n\\\\nNeed a keypair? Run:\\\\n  node -e \\\\\"const k = require(\\'nostr-tools\\'); const sk = k.generateSecretKey(); console.log(Buffer.from(sk).toString(\\'hex\\'))\\\\\"\\\\n\\\\nDocumentation: https://github.com/Shugur-Network/nw-publisher\\\\n')\"",
     "test": "node --test test/cli.test.mjs test/relay.test.mjs",
     "test:unit": "node --test test/cli.test.mjs test/relay.test.mjs",
     "test:integration": "node test/integration.test.mjs",
