@@ -125,7 +125,7 @@ function createTestSite() {
 </head>
 <body>
   <h1>Test Site</h1>
-  <p>Integration test site for nw-publish</p>
+  <p>Integration test site for nw-publisher</p>
   <script src="app.js"></script>
 </body>
 </html>`

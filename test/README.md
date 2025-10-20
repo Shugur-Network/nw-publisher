@@ -1,6 +1,8 @@
 # Nostr Web Publisher - Test Suite
 
-Comprehensive testing for all nw-publish functionality.
+# Tests
+
+Comprehensive testing for all nw-publisher functionality.
 
 ## Test Types
 

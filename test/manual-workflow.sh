@@ -1,8 +1,10 @@
 #!/bin/bash
 #
-# Manual Integration Test Workflow
-# 
-# This script tests the full workflow of nw-publish:
+#!/usr/bin/env bash
+# Manual workflow testing script
+#
+# Test deploying real sites with nw-publisher
+# This script tests the full workflow of nw-publisher:
 # 1. Create a test site
 # 2. Deploy it
 # 3. Verify events with nak
@@ -67,7 +69,7 @@ cat > "$TEST_DIR/index.html" << 'EOF'
         <h1>🧪 Integration Test Site</h1>
     </header>
     <main>
-        <p>This is a test site for verifying nw-publish functionality.</p>
+        <p>This is a test site for verifying nw-publisher functionality.</p>
         <ul>
             <li><a href="about">About</a></li>
             <li><a href="blog/post-1">Blog Post</a></li>

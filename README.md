@@ -36,7 +36,7 @@
 Install globally from npm:
 
 ```bash
-npm install -g nw-publish
+npm install -g nw-publisher
 ```
 
 This installs the `nw-publisher` command globally.
