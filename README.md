@@ -20,7 +20,6 @@
 - 🔄 **Cross-relay sync** - Ensure all relays have complete data
 - 🧹 **Event cleanup** - Remove old or orphaned events
 - 📊 **Status monitoring** - Check relay connectivity and site health
-- ⚙️ **Configuration wizard** - Interactive setup for keys and relays
 - 📄 **DNS TXT generation** - Ready-to-paste records for your domain
 
 ---
@@ -58,24 +57,27 @@ npm link
 npm install -g nw-publish
 ```
 
-### 2. Initialize a New Site
+### 2. Create Your Site
+
+Create your HTML/CSS/JS files in a directory:
 
 ```bash
-nweb init my-website
+mkdir my-website
 cd my-website
+# Create index.html, style.css, etc.
 ```
 
 ### 3. Configure Environment
 
-Generate a keypair and set up configuration:
+Generate a Nostr keypair and create a `.env` file:
 
 ```bash
-# Generate new Nostr keypair
-nweb config generate
+# Generate keypair with nostr-tools
+npx nostr-tools keygen
 
-# Or manually edit .env
-cp .env.example .env
-# Edit NOSTR_SK_HEX and RELAYS
+# Create .env file with your private key
+echo "NOSTR_SK_HEX=your_private_key_hex" > .env
+echo "RELAYS=wss://relay.damus.io,wss://nos.lol" >> .env
 ```
 
 ### 4. Deploy Your Site
@@ -114,12 +116,13 @@ Static Site Folder
 
 ### Smart Caching
 
-**Immutable assets** (kind 1125) are cached:
+**Immutable assets** (kind 1125) are deduplicated by querying relays:
 
-- **Cache file:** `.nweb-cache.json` (in site folder)
+- **Cache source:** Nostr relays (queries on every deploy)
 - **Cache key:** `${kind}:${content-hash}` (content-addressed)
-- **Behavior:** If file unchanged, reuses cached event ID
+- **Behavior:** If file unchanged and found on relays, reuses cached event ID
 - **Benefit:** Only publishes new/changed assets
+- **Reliability:** Always reflects true relay state, no stale local files
 
 **Addressable events** (31126 - Site Index) and **replaceable events** (11126 - Entrypoint) are **republished when content changes**. This ensures:
 
@@ -211,33 +214,23 @@ nweb sync
 
 #### `nweb cleanup [options]`
 
-Remove events from Nostr relays.
+Remove events from Nostr relays (all events, orphaned events, or a specific version).
 
 ```bash
-nweb cleanup                    # Delete all (with confirmation)
+nweb cleanup                    # Delete all events (with confirmation)
+nweb cleanup --version 0.1.0    # Delete a specific version
 nweb cleanup --orphans          # Delete orphaned events only
 nweb cleanup --dry-run          # Preview without deleting
+nweb cleanup --relay wss://...  # Target specific relay(s)
 ```
 
-#### `nweb config <command>`
+**Options:**
 
-Manage configuration and settings.
-
-```bash
-nweb config wizard              # Interactive setup
-nweb config generate            # Generate keypair
-nweb config show                # Show configuration
-nweb config validate            # Validate settings
-```
-
-#### `nweb init [directory]`
-
-Initialize a new Nostr website project.
-
-```bash
-nweb init                       # Current directory
-nweb init my-website            # New directory
-```
+- `--all, -a` - Delete all events (default)
+- `--orphans, -o` - Delete only orphaned events
+- `--version <ver>, -v` - Delete a specific version and its assets
+- `--relay <url>, -r` - Target specific relay(s) (can be used multiple times)
+- `--dry-run, -d` - Show what would be deleted without deleting
 
 ### Usage Examples
 
@@ -272,6 +265,12 @@ nweb cleanup --orphans --dry-run
 
 # Delete orphaned events
 nweb cleanup --orphans
+
+# Delete a specific version
+nweb cleanup --version 0.1.0
+
+# Delete version from specific relay
+nweb cleanup --version 0.2.0 --relay wss://relay.example.com
 ```
 
 ---
@@ -297,8 +296,7 @@ my-site/
   ├─ index.html       # Home page
   ├─ style.css        # Stylesheet
   ├─ app.js           # JavaScript
-  ├─ about.html       # Subpage (optional)
-  └─ .nweb-cache.json # Cache (auto-generated)
+  └─ about.html       # Subpage (optional)
 ```
 
 **Output:**
@@ -328,35 +326,23 @@ my-site/
 
 ---
 
-## Cache Files (Optional)
+## Deployment Architecture
 
-`nweb` creates two local cache files in your site directory:
+`nweb` queries relays on every deployment to check for existing assets and versions:
 
-### `.nweb-cache.json` - Event Cache
+- **Asset deduplication**: Content-addressed matching (SHA256) prevents re-uploading unchanged files
+- **Version history**: Reconstructed from site index events (kind 31126) on relays
+- **No local cache files**: Relays are the single source of truth
+- **Multi-project safe**: Different projects can coexist without cache conflicts
 
-- **Stores**: Asset event IDs, manifest IDs, site index data
-- **Purpose**: Avoid re-publishing unchanged files (faster deployments)
-- **Can be deleted**: Yes! The tool will query relays to rebuild the cache
+**Why no local cache?**
 
-### `.nweb-versions.json` - Version History
+- Local files can become stale after `clean --all` or manual deletions
+- Multiple projects deploying to same pubkey would share/corrupt cache
+- Relay queries are fast and ensure accuracy
+- Simplifies workflows (no cache management needed)
 
-- **Stores**: List of all published versions with timestamps
-- **Purpose**: Track deployment history, power `nweb versions` command
-- **Can be deleted**: Yes! The tool will reconstruct history from relays
-
-### Rebuilding from Relays
-
-If cache files are missing or deleted, `nweb` automatically queries your configured relays to rebuild them:
-
-```bash
-# Normal deploy - uses cache if available, queries relays if not
-nweb deploy .
-
-# Force rebuild from relays (ignore local cache)
-nweb deploy . --rebuild-cache
-```
-
-**Benefits of relay-based cache:**
+**Benefits:**
 
 - ✅ No dependency on local files
 - ✅ Works across multiple machines
@@ -364,34 +350,43 @@ nweb deploy . --rebuild-cache
 - ✅ CI/CD doesn't need cache files
 - ✅ Relays are the single source of truth
 
-**Note**: Querying relays is slower than reading local cache (~5-10 seconds), so cache files speed up subsequent deployments. Add them to `.gitignore` (done automatically by `nweb init`).
-
 ---
 
 ## Troubleshooting
 
 ### Cleanup Tool
 
-If you need to reset your site or remove all published events:
+If you need to reset your site, remove old versions, or clean up orphaned events:
 
 ```bash
-nweb cleanup
+# Delete everything (full reset)
+nweb cleanup --all
+
+# Delete a specific version
+nweb cleanup --version 0.1.0
+
+# Delete orphaned events only
+nweb cleanup --orphans
+
+# Preview without deleting
+nweb cleanup --version 0.2.0 --dry-run
 ```
 
 This will:
 
-- Query all events published by your site from configured relays
+- Query events from configured relays
+- Show summary of what will be deleted
+- Ask for confirmation (type "DELETE")
 - Send deletion requests (kind 5 events) to all relays
-- Delete the local cache file
-- Provide detailed summary of what was deleted
+- Provide detailed deletion statistics per relay
 
-**Example:**
+**Cleanup Modes:**
 
-```bash
-nweb cleanup
-```
+- **`--all`**: Delete all events (full reset)
+- **`--version <ver>`**: Delete a specific version and its assets
+- **`--orphans`**: Delete only unreferenced events (orphaned assets/manifests)
 
-See [CLEANUP.md](./CLEANUP.md) for full documentation.
+See the cleanup help for more details: `nweb cleanup --help`
 
 ### "Cannot find module 'nostr-tools'"
 
@@ -413,10 +408,15 @@ echo "NOSTR_SK_HEX=your_hex_key_here" > .env
 2. Events too large (relay limits ~64KB)
 3. Rate limiting (wait a few minutes)
 
-**Solution:** Use the cleanup tool to remove orphaned events, then republish:
+**Solution:** Use the cleanup tool to remove orphaned events or do a full reset, then republish:
 
 ```bash
-nweb cleanup
+# Option 1: Clean up orphans only
+nweb cleanup --orphans
+nweb deploy <site-folder>
+
+# Option 2: Full reset
+nweb cleanup --all
 nweb deploy <site-folder>
 ```
 
@@ -432,7 +432,12 @@ nweb deploy <site-folder>
 **Reset:** If site is inconsistent, use cleanup tool:
 
 ```bash
-nweb cleanup
+# Clean up orphans
+nweb cleanup --orphans
+nweb deploy <site-folder>
+
+# Or do a full reset
+nweb cleanup --all
 nweb deploy <site-folder>
 ```
 

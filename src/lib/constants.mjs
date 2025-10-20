@@ -15,7 +15,6 @@ export const EVENT_KINDS = {
 
 // File System
 export const FILES = {
-  CACHE: ".nweb-cache.json",
   KEYPAIR: ".nweb-keypair.json",
   CONFIG: ".nweb.config.json",
   DNS_OUTPUT: "_nweb.txt",

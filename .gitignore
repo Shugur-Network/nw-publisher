@@ -10,8 +10,6 @@ dist/
 # Generated files
 _nweb.txt
 _nweb.txt.json
-.nweb-cache.json
-.nweb-versions.json
 .nweb-keypair.json
 
 # Test coverage

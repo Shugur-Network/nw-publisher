@@ -51,6 +51,7 @@ function parseArguments(args) {
   let orphansOnly = false;
   let dryRun = false;
   let allRelays = true;
+  let targetVersion = null;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--help" || args[i] === "-h") {
@@ -67,14 +68,26 @@ function parseArguments(args) {
       dryRun = true;
     } else if (args[i] === "--all" || args[i] === "-a") {
       orphansOnly = false;
+    } else if (args[i] === "--version" || args[i] === "-v") {
+      if (i + 1 >= args.length) {
+        throw new ValidationError("--version requires a version argument");
+      }
+      targetVersion = args[++i];
     } else if (!args[i].startsWith("-")) {
       throw new ValidationError(
-        `Unknown argument: ${args[i]}. Cleanup does not accept site directory. Use options: --all, --orphans, --relay, --dry-run`
+        `Unknown argument: ${args[i]}. Cleanup does not accept site directory. Use options: --all, --orphans, --version, --relay, --dry-run`
       );
     }
   }
 
-  return { targetRelays, showHelp, orphansOnly, dryRun, allRelays };
+  return {
+    targetRelays,
+    showHelp,
+    orphansOnly,
+    dryRun,
+    allRelays,
+    targetVersion,
+  };
 }
 
 /**
@@ -84,7 +97,7 @@ function showHelpMessage() {
   console.log(`
 🧹 Nostr Web Cleanup Tool
 
-Remove events from Nostr relays - clean up everything or just orphaned data.
+Remove events from Nostr relays - clean up everything, orphaned data, or a specific version.
 Requires NOSTR_SK_HEX in .env to sign deletion events.
 
 Usage: nweb cleanup [options]
@@ -92,6 +105,7 @@ Usage: nweb cleanup [options]
 Options:
   --all, -a                Delete all events (default)
   --orphans, -o            Delete only orphaned events
+  --version <ver>, -v      Delete a specific version and its assets
   --relay <url>, -r <url>  Target specific relay(s) (can be used multiple times)
   --dry-run, -d            Show what would be deleted without deleting
   --help, -h               Show this help message
@@ -103,6 +117,9 @@ Examples:
   # Delete only orphaned events
   nweb cleanup --orphans
 
+  # Delete a specific version
+  nweb cleanup --version 0.1.0
+
   # Delete from specific relay
   nweb cleanup --relay wss://relay.example.com
 
@@ -110,7 +127,7 @@ Examples:
   nweb cleanup --orphans --relay wss://relay.example.com
   
   # Preview what would be deleted (dry run)
-  nweb cleanup --orphans --dry-run
+  nweb cleanup --version 0.2.0 --dry-run
 
 What it does:
   ALL MODE (--all):
@@ -118,8 +135,7 @@ What it does:
     2. Shows summary of events to be deleted
     3. Asks for confirmation (type "DELETE")
     4. Sends kind 5 deletion events to target relays
-    5. Deletes local cache file
-    6. Shows deletion statistics per relay
+    5. Shows deletion statistics per relay
 
   ORPHANS MODE (--orphans):
     1. Queries all events from target relays
@@ -130,7 +146,14 @@ What it does:
     3. Shows orphan analysis report
     4. Asks for confirmation
     5. Deletes only orphaned events
-    6. Keeps local cache (as it contains valid events)
+
+  VERSION MODE (--version):
+    1. Queries all site index events to find the target version
+    2. Identifies the site index and entrypoint for that version
+    3. Finds all manifests and assets referenced by that version
+    4. Shows summary of events to be deleted
+    5. Asks for confirmation
+    6. Deletes only events specific to that version
 
 What are orphans?
   - Assets not referenced by any manifest
@@ -145,6 +168,7 @@ What are orphans?
 
 Use cases:
   - Full reset: nweb cleanup
+  - Remove old version: nweb cleanup --version 0.1.0
   - Fix corrupted relay: nweb cleanup --orphans --relay wss://relay.com
   - Remove test data: nweb cleanup --relay wss://test-relay.com
   - Clean up before major refactor: nweb cleanup --all
@@ -188,12 +212,14 @@ async function performFullCleanup(pubkey, relays, skHex, dryRun) {
 
   // Display summary
   logger.info("\n📊 Events to be deleted:\n");
-  logger.info(`   Assets: ${byKind[EVENT_KINDS.ASSET]?.length || 0}`);
-  logger.info(`   Manifests: ${byKind[EVENT_KINDS.MANIFEST]?.length || 0}`);
+  logger.info(`   Assets: ${byKind.get(EVENT_KINDS.ASSET)?.length || 0}`);
+  logger.info(`   Manifests: ${byKind.get(EVENT_KINDS.MANIFEST)?.length || 0}`);
   logger.info(
-    `   Site Indexes: ${byKind[EVENT_KINDS.SITE_INDEX]?.length || 0}`
+    `   Site Indexes: ${byKind.get(EVENT_KINDS.SITE_INDEX)?.length || 0}`
   );
-  logger.info(`   Entrypoints: ${byKind[EVENT_KINDS.ENTRYPOINT]?.length || 0}`);
+  logger.info(
+    `   Entrypoints: ${byKind.get(EVENT_KINDS.ENTRYPOINT)?.length || 0}`
+  );
   logger.info(`   Total: ${uniqueEvents.length}`);
 
   logger.info("\n📡 Relay breakdown:\n");
@@ -377,13 +403,290 @@ async function performOrphanCleanup(pubkey, relays, skHex, dryRun) {
 }
 
 /**
+ * Query all site index events from relay
+ */
+async function queryAllSiteIndexes(relay, pubkey) {
+  try {
+    const events = await queryEvents(relay, [
+      {
+        kinds: [EVENT_KINDS.SITE_INDEX],
+        authors: [pubkey],
+      },
+    ]);
+    return events;
+  } catch (error) {
+    logger.debug(`Query site indexes failed: ${error.message}`);
+    return [];
+  }
+}
+
+/**
+ * Query entrypoint events from relay
+ */
+async function queryEntrypoints(relay, pubkey) {
+  try {
+    const events = await queryEvents(relay, [
+      {
+        kinds: [EVENT_KINDS.ENTRYPOINT],
+        authors: [pubkey],
+      },
+    ]);
+    return events;
+  } catch (error) {
+    logger.debug(`Query entrypoints failed: ${error.message}`);
+    return [];
+  }
+}
+
+/**
+ * Query manifest events from relay
+ */
+async function queryManifests(relay, pubkey) {
+  try {
+    const events = await queryEvents(relay, [
+      {
+        kinds: [EVENT_KINDS.MANIFEST],
+        authors: [pubkey],
+      },
+    ]);
+    return events;
+  } catch (error) {
+    logger.debug(`Query manifests failed: ${error.message}`);
+    return [];
+  }
+}
+
+/**
+ * Query asset events from relay
+ */
+async function queryAssets(relay, pubkey, assetIds) {
+  try {
+    const events = await queryEvents(relay, [
+      {
+        kinds: [EVENT_KINDS.ASSET],
+        authors: [pubkey],
+        ids: assetIds,
+      },
+    ]);
+    return events;
+  } catch (error) {
+    logger.debug(`Query assets failed: ${error.message}`);
+    return [];
+  }
+}
+
+/**
+ * Delete a specific version and its assets
+ */
+async function performVersionCleanup(pubkey, relays, skHex, version, dryRun) {
+  logger.info(`\n🔍 Locating version ${version}...\n`);
+
+  // Query all site indexes and entrypoints from all relays
+  let allSiteIndexes = [];
+  let allEntrypoints = [];
+
+  for (const relayUrl of relays) {
+    logger.info(`   Querying ${relayUrl}...`);
+    const relay = await connectToRelay(relayUrl);
+    const siteIndexes = await queryAllSiteIndexes(relay, pubkey);
+    const entrypoints = await queryEntrypoints(relay, pubkey);
+
+    // Deduplicate by event ID
+    for (const event of siteIndexes) {
+      if (!allSiteIndexes.find((e) => getEventId(e) === getEventId(event))) {
+        allSiteIndexes.push(event);
+      }
+    }
+    for (const event of entrypoints) {
+      if (!allEntrypoints.find((e) => getEventId(e) === getEventId(event))) {
+        allEntrypoints.push(event);
+      }
+    }
+
+    closeRelay(relay);
+  }
+
+  // Find the target version's site index
+  let targetSiteIndex = null;
+  for (const siteIndex of allSiteIndexes) {
+    try {
+      const content = JSON.parse(siteIndex.content);
+      if (content.version === version) {
+        targetSiteIndex = siteIndex;
+        break;
+      }
+    } catch (error) {
+      logger.debug(`Failed to parse site index: ${error.message}`);
+    }
+  }
+
+  if (!targetSiteIndex) {
+    throw new ValidationError(
+      `Version ${version} not found. Use 'nweb versions list' to see available versions.`
+    );
+  }
+
+  const siteIndexId = getEventId(targetSiteIndex);
+  const dTag = targetSiteIndex.tags.find((t) => t[0] === "d")?.[1];
+
+  logger.success(`   ✓ Found version ${version}`);
+  logger.info(`     Site Index ID: ${siteIndexId.substring(0, 16)}...`);
+
+  // Find entrypoint for this version
+  const entrypoint = allEntrypoints.find((ep) => {
+    const aTag = ep.tags.find((t) => t[0] === "a")?.[1];
+    return aTag && aTag.includes(`:${dTag}`);
+  });
+
+  const eventsToDelete = [targetSiteIndex];
+  if (entrypoint) {
+    eventsToDelete.push(entrypoint);
+    logger.info(
+      `     Entrypoint ID: ${getEventId(entrypoint).substring(0, 16)}...`
+    );
+  }
+
+  // Parse site index to get manifest IDs
+  const content = JSON.parse(targetSiteIndex.content);
+  const manifestIds = Object.values(content.routes || {});
+
+  logger.info(`\n   Fetching ${manifestIds.length} manifest(s)...`);
+
+  // Query manifests from all relays
+  const manifestEvents = [];
+  for (const relayUrl of relays) {
+    const relay = await connectToRelay(relayUrl);
+    const manifests = await queryManifests(relay, pubkey);
+
+    // Filter to only the ones referenced by this version
+    for (const manifest of manifests) {
+      const manifestId = getEventId(manifest);
+      if (manifestIds.includes(manifestId)) {
+        if (!manifestEvents.find((e) => getEventId(e) === manifestId)) {
+          manifestEvents.push(manifest);
+        }
+      }
+    }
+
+    closeRelay(relay);
+  }
+
+  eventsToDelete.push(...manifestEvents);
+  logger.info(`     Found ${manifestEvents.length} manifest(s)`);
+
+  // Parse manifests to get asset IDs
+  const assetIds = new Set();
+  for (const manifest of manifestEvents) {
+    try {
+      const manifestContent = JSON.parse(manifest.content);
+      const assets = manifestContent.assets || [];
+      for (const asset of assets) {
+        if (asset.id) {
+          assetIds.add(asset.id);
+        }
+      }
+    } catch (error) {
+      logger.debug(`Failed to parse manifest: ${error.message}`);
+    }
+  }
+
+  logger.info(`\n   Fetching ${assetIds.size} asset(s)...`);
+
+  // Query assets from all relays
+  const assetEvents = [];
+  const assetIdArray = Array.from(assetIds);
+
+  for (const relayUrl of relays) {
+    const relay = await connectToRelay(relayUrl);
+    const assets = await queryAssets(relay, pubkey, assetIdArray);
+
+    for (const asset of assets) {
+      const assetId = getEventId(asset);
+      if (!assetEvents.find((e) => getEventId(e) === assetId)) {
+        assetEvents.push(asset);
+      }
+    }
+
+    closeRelay(relay);
+  }
+
+  eventsToDelete.push(...assetEvents);
+  logger.info(`     Found ${assetEvents.length} asset(s)`);
+
+  // Display summary
+  logger.info("\n📊 Events to be deleted:\n");
+  logger.info(`   Version: ${version}`);
+  logger.info(`   Site Index: 1`);
+  logger.info(`   Entrypoint: ${entrypoint ? 1 : 0}`);
+  logger.info(`   Manifests: ${manifestEvents.length}`);
+  logger.info(`   Assets: ${assetEvents.length}`);
+  logger.info(`   Total: ${eventsToDelete.length}`);
+
+  if (dryRun) {
+    logger.info("\n🔍 DRY RUN - No events will be deleted");
+    return;
+  }
+
+  // Confirm deletion
+  const confirmed = await confirmDeletion(
+    `This will delete version ${version} (${eventsToDelete.length} events) from ${relays.length} relay(s).`
+  );
+
+  if (!confirmed) {
+    logger.info("\n❌ Cleanup canceled.");
+    process.exit(0);
+  }
+
+  // Perform deletion
+  logger.info("\n🗑️  Deleting version events...\n");
+
+  const eventIds = eventsToDelete.map(getEventId);
+  const results = {};
+
+  for (const relayUrl of relays) {
+    process.stdout.write(`   ${relayUrl}: `);
+    const result = await deleteEventsFromRelay(relayUrl, eventIds, skHex);
+    console.log(` ✓ ${result.published} deleted, ${result.failed} failed`);
+    results[relayUrl] = result;
+  }
+
+  // Display summary
+  logger.info("\n📊 Deletion Summary:\n");
+  let totalPublished = 0;
+  let totalFailed = 0;
+
+  for (const [relay, result] of Object.entries(results)) {
+    logger.info(`   ${relay}:`);
+    logger.success(`      ✓ Deleted: ${result.published}`);
+    if (result.failed > 0) {
+      logger.error(`      ✗ Failed: ${result.failed}`);
+    }
+    totalPublished += result.published;
+    totalFailed += result.failed;
+  }
+
+  logger.info(`\n   Total deleted: ${totalPublished}`);
+  if (totalFailed > 0) {
+    logger.warn(`   Total failed: ${totalFailed}`);
+  }
+
+  logger.success(`\n✅ Version ${version} deleted successfully!`);
+}
+
+/**
  * Main function
  */
 async function main() {
   try {
     const args = process.argv.slice(2);
-    const { targetRelays, showHelp, orphansOnly, dryRun, allRelays } =
-      parseArguments(args);
+    const {
+      targetRelays,
+      showHelp,
+      orphansOnly,
+      dryRun,
+      allRelays,
+      targetVersion,
+    } = parseArguments(args);
 
     if (showHelp) {
       showHelpMessage();
@@ -431,8 +734,11 @@ async function main() {
       logger.info(`   - ${relay}`);
     }
 
-    // Perform cleanup
-    if (orphansOnly) {
+    // Perform cleanup based on mode
+    if (targetVersion) {
+      logger.info(`\n🎯 Mode: Version cleanup (delete specific version)`);
+      await performVersionCleanup(pubkey, relays, skHex, targetVersion, dryRun);
+    } else if (orphansOnly) {
       logger.info(
         `\n🎯 Mode: Orphan cleanup (delete unreferenced events only)`
       );
@@ -440,15 +746,6 @@ async function main() {
     } else {
       logger.info(`\n🎯 Mode: Full cleanup (delete all events)`);
       await performFullCleanup(pubkey, relays, skHex, dryRun);
-
-      if (!dryRun) {
-        logger.info(
-          `\n💡 Note: Local cache files (.nweb-cache.json) are not automatically deleted.`
-        );
-        logger.info(
-          `   Delete them manually from your site directories if needed.`
-        );
-      }
     }
 
     logger.info(

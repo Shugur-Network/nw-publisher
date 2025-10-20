@@ -108,13 +108,13 @@ function readEnv() {
 
 /**
  * Load cached event mappings (content hash -> event ID)
- * First tries local file, then falls back to querying relays
+ * Always queries relays - no local cache file used
  *
- * @param {string} siteDir - Site directory path
- * @param {Array} relays - Array of relay URLs (for fallback)
- * @param {string} pubkey - Public key (for fallback query)
- * @param {boolean} forceRebuild - If true, skip local cache and query relays
- * @returns {Promise<Object>} Cache object
+ * @param {string} siteDir - Site directory path (unused, kept for compatibility)
+ * @param {Array} relays - Array of relay URLs
+ * @param {string} pubkey - Public key
+ * @param {boolean} forceRebuild - Unused, kept for compatibility
+ * @returns {Promise<Object>} Cache object built from relay data
  */
 async function loadEventCache(
   siteDir,
@@ -122,32 +122,19 @@ async function loadEventCache(
   pubkey = null,
   forceRebuild = false
 ) {
-  const cachePath = path.join(siteDir, ".nweb-cache.json");
-
-  // Try local cache first (unless force rebuild)
-  if (!forceRebuild && fs.existsSync(cachePath)) {
-    try {
-      const cache = JSON.parse(fs.readFileSync(cachePath, "utf8"));
-      console.log("📦 Loaded cache from local file\n");
-      return cache;
-    } catch (e) {
-      console.warn(`⚠ Failed to read cache file: ${e.message}`);
-    }
-  }
-
-  // Fallback: Query relays if we have connection info
+  // Always query relays - no local cache file
   if (relays && relays.length > 0 && pubkey) {
-    console.log("📡 Cache file not found, querying Nostr relays...\n");
+    console.log("📡 Querying Nostr relays for existing events...\n");
     try {
       const cache = await rebuildCacheFromRelays(relays, pubkey);
       return cache;
     } catch (e) {
-      console.warn(`⚠ Failed to rebuild cache from relays: ${e.message}`);
+      console.warn(`⚠ Failed to query relays: ${e.message}`);
     }
   }
 
-  // Default: Empty cache
-  console.log("📦 Starting with empty cache\n");
+  // Default: Empty cache if no relay connection
+  console.log("📦 Starting with empty cache (no relays available)\n");
   return {
     assets: {},
     manifests: {},
@@ -159,13 +146,13 @@ async function loadEventCache(
 
 /**
  * Load version history
- * First tries local file, then falls back to querying relays
+ * Always queries relays - no local cache file used
  *
- * @param {string} siteDir - Site directory path
- * @param {Array} relays - Array of relay URLs (for fallback)
- * @param {string} pubkey - Public key (for fallback query)
- * @param {boolean} forceRebuild - If true, skip local file and query relays
- * @returns {Promise<Object>} Version history object
+ * @param {string} siteDir - Site directory path (unused, kept for compatibility)
+ * @param {Array} relays - Array of relay URLs
+ * @param {string} pubkey - Public key
+ * @param {boolean} forceRebuild - Unused, kept for compatibility
+ * @returns {Promise<Object>} Version history object built from relay data
  */
 async function loadVersionHistory(
   siteDir,
@@ -173,34 +160,21 @@ async function loadVersionHistory(
   pubkey = null,
   forceRebuild = false
 ) {
-  const versionPath = path.join(siteDir, ".nweb-versions.json");
-
-  // Try local file first (unless force rebuild)
-  if (!forceRebuild && fs.existsSync(versionPath)) {
-    try {
-      const history = JSON.parse(fs.readFileSync(versionPath, "utf8"));
-      console.log("📜 Loaded version history from local file\n");
-      return history;
-    } catch (e) {
-      console.warn(`⚠ Failed to read version history: ${e.message}`);
-    }
-  }
-
-  // Fallback: Query relays if we have connection info
+  // Always query relays - no local version file
   if (relays && relays.length > 0 && pubkey) {
-    console.log("📡 Version history not found, querying Nostr relays...\n");
+    console.log("📡 Querying Nostr relays for version history...\n");
     try {
       const history = await queryVersionHistory(relays, pubkey);
       return history;
     } catch (e) {
       console.warn(
-        `⚠ Failed to rebuild version history from relays: ${e.message}`
+        `⚠ Failed to query version history from relays: ${e.message}`
       );
     }
   }
 
-  // Default: Empty history
-  console.log("📜 Starting with empty version history\n");
+  // Default: Empty history if no relay connection
+  console.log("📜 Starting with empty version history (no relays available)\n");
   return {
     current: "0.1.0",
     versions: [],
@@ -208,11 +182,11 @@ async function loadVersionHistory(
 }
 
 /**
- * Save version history
+ * Save version history (DISABLED - we rely 100% on relay data)
  */
 function saveVersionHistory(siteDir, history) {
-  const versionPath = path.join(siteDir, ".nweb-versions.json");
-  fs.writeFileSync(versionPath, JSON.stringify(history, null, 2));
+  // No-op: We no longer save version history locally
+  // Always query relays for the source of truth
 }
 
 /**
@@ -292,11 +266,11 @@ function detectChangeType(cache, newManifests, newSiteIndexContent) {
 }
 
 /**
- * Save event cache to disk
+ * Save event cache to disk (DISABLED - we rely 100% on relay data)
  */
 function saveEventCache(siteDir, cache) {
-  const cachePath = path.join(siteDir, ".nweb-cache.json");
-  fs.writeFileSync(cachePath, JSON.stringify(cache, null, 2));
+  // No-op: We no longer save cache files locally
+  // Always query relays for the source of truth
 }
 
 /**
@@ -362,6 +336,11 @@ function htmlPathToRoute(htmlPath) {
 
 async function* walk(dir) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    // Skip ignored directories
+    if (e.isDirectory() && shouldIgnoreDir(e.name)) {
+      continue;
+    }
+
     const p = path.join(dir, e.name);
     if (e.isDirectory()) yield* walk(p);
     else yield p;
@@ -926,13 +905,18 @@ What it does:
       manifestEvents,
       preliminarySiteIndexContent
     );
-    newVersion = cache.siteIndex
-      ? incrementVersion(versionHistory.current, changeType)
-      : versionHistory.current;
 
-    console.log(
-      `   Version: ${versionHistory.current} → ${newVersion} (${changeType} update)`
-    );
+    // If no cached site index, this is first deployment - use current version as-is
+    // Otherwise, increment based on change type
+    if (!cache.siteIndex) {
+      newVersion = versionHistory.current;
+      console.log(`   Version: ${newVersion} (initial deployment)`);
+    } else {
+      newVersion = incrementVersion(versionHistory.current, changeType);
+      console.log(
+        `   Version: ${versionHistory.current} → ${newVersion} (${changeType} update)`
+      );
+    }
   }
 
   // Build site index content with version
@@ -1004,12 +988,12 @@ What it does:
       entrypointId: null, // Will be updated below
     });
 
-    // Keep only last 50 versions
+    // Keep only last 50 versions (in memory for this deployment)
     if (versionHistory.versions.length > 50) {
       versionHistory.versions = versionHistory.versions.slice(-50);
     }
 
-    saveVersionHistory(siteDir, versionHistory);
+    // Note: Version history is stored on-chain in site index events, not in local files
 
     console.log(
       `[INDEX] site-index (d=${truncatedHash}) -> ${siteIndex.id} (updated, v${newVersion})`
@@ -1065,15 +1049,15 @@ What it does:
       siteIndexHash: truncatedHash,
     };
 
-    // Update entrypoint ID in latest version history entry
+    // Update entrypoint ID in latest version history entry (in memory only)
     if (siteIndexUpdated && versionHistory.versions.length > 0) {
       versionHistory.versions[versionHistory.versions.length - 1].entrypointId =
         entrypoint.id;
-      saveVersionHistory(siteDir, versionHistory);
+      // Note: Version history tracked on-chain, not saved locally
     }
   }
 
-  saveEventCache(siteDir, cache);
+  // Note: We no longer save local cache files - we query relays for source of truth
 
   // Rollback orphaned events from failed relays
   console.log("\n🧹 Cleaning up orphaned events from failed relays...");
