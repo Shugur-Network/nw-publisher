@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.3] - 2025-10-22
+
+### Fixed
+
+- **Critical:** Fixed global npm package working directory issue
+  - Changed `nw-publisher.mjs` to use `process.cwd()` instead of `__dirname` when spawning command scripts
+  - This ensures commands run in the user's current directory, not the package installation directory
+  - Resolves the root cause of `.env` file not being found when running as global package
+  - Now properly loads environment variables from the user's working directory
+
 ## [1.3.2] - 2025-10-22
 
 ### Fixed

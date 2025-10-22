@@ -207,7 +207,7 @@ function runScript(scriptName, args = []) {
   try {
     const result = spawn("node", [scriptPath, ...args], {
       stdio: "inherit",
-      cwd: __dirname,
+      cwd: process.cwd(), // Use user's current directory, not package directory
     });
 
     result.on("exit", (code) => {
