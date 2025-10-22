@@ -206,10 +206,8 @@ export async function queryVersionHistory(relayUrls, pubkey) {
     try {
       const content = JSON.parse(siteIndex.content || "{}");
 
-      // Extract routes from manifest tags
-      const routes = siteIndex.tags
-        .filter((t) => t[0] === "e" && t[3]) // e tags with route marker
-        .map((t) => t[3]);
+      // Extract routes from content (not tags)
+      const routes = Object.keys(content.routes || {});
 
       // Get content hash from tag
       const hashTag = siteIndex.tags.find((t) => t[0] === "x");
@@ -228,7 +226,8 @@ export async function queryVersionHistory(relayUrls, pubkey) {
         entrypointId: null, // Would need to query entrypoint separately
       });
 
-      if (versions.length === 0) {
+      // Set current version to the newest (first in sorted array)
+      if (versions.length === 1) {
         currentVersion = version;
       }
     } catch (error) {

@@ -93,16 +93,22 @@ function analyzeOrphans(events) {
     }
   }
 
-  // Site indexes reference manifests
+  // Site indexes reference manifests (via JSON content)
   for (const index of byKind[EVENT_KINDS.SITE_INDEX]) {
     if (
       referencedIndexes.has(getEventId(index)) ||
       referencedIndexes.size === 0
     ) {
-      for (const tag of index.tags) {
-        if (tag[0] === "e") {
-          referencedManifests.add(tag[1]);
+      try {
+        const content = JSON.parse(index.content);
+        const routes = content.routes || {};
+        for (const manifestId of Object.values(routes)) {
+          if (manifestId) {
+            referencedManifests.add(manifestId);
+          }
         }
+      } catch (error) {
+        logger.debug(`Failed to parse site index content: ${error.message}`);
       }
     }
   }

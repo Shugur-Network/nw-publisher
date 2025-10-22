@@ -488,22 +488,24 @@ async function performVersionCleanup(pubkey, relays, skHex, version, dryRun) {
   for (const relayUrl of relays) {
     logger.info(`   Querying ${relayUrl}...`);
     const relay = await connectToRelay(relayUrl);
-    const siteIndexes = await queryAllSiteIndexes(relay, pubkey);
-    const entrypoints = await queryEntrypoints(relay, pubkey);
+    try {
+      const siteIndexes = await queryAllSiteIndexes(relay, pubkey);
+      const entrypoints = await queryEntrypoints(relay, pubkey);
 
-    // Deduplicate by event ID
-    for (const event of siteIndexes) {
-      if (!allSiteIndexes.find((e) => getEventId(e) === getEventId(event))) {
-        allSiteIndexes.push(event);
+      // Deduplicate by event ID
+      for (const event of siteIndexes) {
+        if (!allSiteIndexes.find((e) => getEventId(e) === getEventId(event))) {
+          allSiteIndexes.push(event);
+        }
       }
-    }
-    for (const event of entrypoints) {
-      if (!allEntrypoints.find((e) => getEventId(e) === getEventId(event))) {
-        allEntrypoints.push(event);
+      for (const event of entrypoints) {
+        if (!allEntrypoints.find((e) => getEventId(e) === getEventId(event))) {
+          allEntrypoints.push(event);
+        }
       }
+    } finally {
+      closeRelay(relay);
     }
-
-    closeRelay(relay);
   }
 
   // Find the target version's site index
@@ -556,37 +558,34 @@ async function performVersionCleanup(pubkey, relays, skHex, version, dryRun) {
   const manifestEvents = [];
   for (const relayUrl of relays) {
     const relay = await connectToRelay(relayUrl);
-    const manifests = await queryManifests(relay, pubkey);
+    try {
+      const manifests = await queryManifests(relay, pubkey);
 
-    // Filter to only the ones referenced by this version
-    for (const manifest of manifests) {
-      const manifestId = getEventId(manifest);
-      if (manifestIds.includes(manifestId)) {
-        if (!manifestEvents.find((e) => getEventId(e) === manifestId)) {
-          manifestEvents.push(manifest);
+      // Filter to only the ones referenced by this version
+      for (const manifest of manifests) {
+        const manifestId = getEventId(manifest);
+        if (manifestIds.includes(manifestId)) {
+          if (!manifestEvents.find((e) => getEventId(e) === manifestId)) {
+            manifestEvents.push(manifest);
+          }
         }
       }
+    } finally {
+      closeRelay(relay);
     }
-
-    closeRelay(relay);
   }
 
   eventsToDelete.push(...manifestEvents);
   logger.info(`     Found ${manifestEvents.length} manifest(s)`);
 
-  // Parse manifests to get asset IDs
+  // Parse manifests to get asset IDs from 'e' tags
   const assetIds = new Set();
   for (const manifest of manifestEvents) {
-    try {
-      const manifestContent = JSON.parse(manifest.content);
-      const assets = manifestContent.assets || [];
-      for (const asset of assets) {
-        if (asset.id) {
-          assetIds.add(asset.id);
-        }
+    // Manifests reference assets via 'e' tags, not in content
+    for (const tag of manifest.tags) {
+      if (tag[0] === "e") {
+        assetIds.add(tag[1]);
       }
-    } catch (error) {
-      logger.debug(`Failed to parse manifest: ${error.message}`);
     }
   }
 
@@ -598,16 +597,18 @@ async function performVersionCleanup(pubkey, relays, skHex, version, dryRun) {
 
   for (const relayUrl of relays) {
     const relay = await connectToRelay(relayUrl);
-    const assets = await queryAssets(relay, pubkey, assetIdArray);
+    try {
+      const assets = await queryAssets(relay, pubkey, assetIdArray);
 
-    for (const asset of assets) {
-      const assetId = getEventId(asset);
-      if (!assetEvents.find((e) => getEventId(e) === assetId)) {
-        assetEvents.push(asset);
+      for (const asset of assets) {
+        const assetId = getEventId(asset);
+        if (!assetEvents.find((e) => getEventId(e) === assetId)) {
+          assetEvents.push(asset);
+        }
       }
+    } finally {
+      closeRelay(relay);
     }
-
-    closeRelay(relay);
   }
 
   eventsToDelete.push(...assetEvents);
