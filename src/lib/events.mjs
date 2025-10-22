@@ -99,17 +99,18 @@ export function createSiteIndexEvent(contentHash, siteData, skHex) {
  *
  * @param {string} pubkey - Publisher public key
  * @param {string} contentHash - Site index d tag
+ * @param {string} relayHint - Relay URL hint where the site index can be found
  * @param {string} skHex - Private key in hex
  * @returns {Object} Finalized event
  */
-export function createEntrypointEvent(pubkey, contentHash, skHex) {
+export function createEntrypointEvent(pubkey, contentHash, relayHint, skHex) {
   const SK = hexToUint8Array(skHex);
 
   return finalizeEvent(
     {
       kind: EVENT_KINDS.ENTRYPOINT,
       created_at: Math.floor(Date.now() / 1000),
-      tags: [["a", `${EVENT_KINDS.SITE_INDEX}:${pubkey}:${contentHash}`]],
+      tags: [["a", `${EVENT_KINDS.SITE_INDEX}:${pubkey}:${contentHash}`, relayHint || ""]],
       content: "",
     },
     SK

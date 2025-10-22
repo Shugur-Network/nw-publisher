@@ -1,6 +1,6 @@
 {
   "name": "nw-publisher",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "Nostr Web Publisher - CLI tool for deploying and managing static websites on Nostr",
   "type": "module",
   "main": "./nw-publisher.mjs",
