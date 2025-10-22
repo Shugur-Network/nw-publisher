@@ -19,7 +19,8 @@ import {
 } from "../lib/relay-query.mjs";
 import { parseRelayUrls } from "../lib/relay.mjs";
 
-dotenv.config();
+// Load .env from current working directory
+dotenv.config({ path: process.cwd() + '/.env' });
 
 const now = () => Math.floor(Date.now() / 1000);
 const sha256Hex = (buf) =>

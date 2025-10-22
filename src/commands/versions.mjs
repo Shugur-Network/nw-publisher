@@ -21,7 +21,8 @@ import { groupEventsByKind, getEventId } from "../lib/events.mjs";
 import { logger } from "../utils/logger.mjs";
 import { handleError, ConfigError, ValidationError } from "../utils/errors.mjs";
 
-dotenv.config();
+// Load .env from current working directory
+dotenv.config({ path: process.cwd() + '/.env' });
 
 /**
  * Get pubkey from CLI argument or environment

@@ -20,7 +20,8 @@ import { logger } from "../utils/logger.mjs";
 import { handleError, ConfigError, ValidationError } from "../utils/errors.mjs";
 import { nip19 } from "nostr-tools";
 
-dotenv.config();
+// Load .env from current working directory
+dotenv.config({ path: process.cwd() + '/.env' });
 
 /**
  * Get public key from CLI argument or environment

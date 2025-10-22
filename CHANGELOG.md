@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.2] - 2025-10-22
+
+### Fixed
+
+- **Critical:** Fixed dotenv not loading `.env` file when running as global npm package
+  - Updated all commands to explicitly load `.env` from current working directory
+  - Affects: cleanup, delete-orphans, status, sync, versions, publish commands
+  - Users can now run `nw-publisher` globally without environment variable issues
+
 ## [1.3.1] - 2025-10-22
 
 ### Fixed
