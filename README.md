@@ -98,7 +98,7 @@ npx nostr-tools keygen
 
 # Create .env file with your private key
 echo "NOSTR_SK_HEX=your_private_key_hex" > .env
-echo "RELAYS=wss://relay.damus.io,wss://nos.lol" >> .env
+echo "RELAYS=wss://shu01.shugur.net,wss://nos.lol" >> .env
 ```
 
 ### 4. Deploy Your Site
@@ -114,7 +114,7 @@ The publisher outputs `_nweb.txt` with instructions. Copy the JSON value into a 
 ```
 Host: _nweb.yourdomain.com
 Type: TXT
-Value: {"pk":"npub1...","relays":["wss://relay.damus.io",...]}
+Value: {"pk":"npub1...","relays":["wss://shu01.shugur.net",...]}
 ```
 
 ---
