@@ -43,7 +43,7 @@ Set environment variables in `publisher/.env`:
 
 ```env
 NOSTR_SK_HEX=<your-hex-private-key>
-RELAYS=wss://relay.damus.io,wss://nos.lol
+RELAYS=wss://shu01.shugur.net,wss://relay.damus.io,wss://nos.lol
 NWEB_HOST=example.com
 ```
 

@@ -20,7 +20,7 @@ import {
 import { parseRelayUrls } from "../lib/relay.mjs";
 
 // Load .env from current working directory
-dotenv.config({ path: process.cwd() + '/.env' });
+dotenv.config({ path: process.cwd() + "/.env" });
 
 const now = () => Math.floor(Date.now() / 1000);
 const sha256Hex = (buf) =>
@@ -1484,7 +1484,7 @@ ${"=".repeat(70)}
     console.log(`🔧 General Recommendations:`);
     console.log(`   • Use 3-5 reliable relays for redundancy`);
     console.log(
-      `   • Popular relays: relay.nostr.band, nos.lol, relay.damus.io`
+      `   • Popular relays:     shu01.shugur.net, relay.nostr.band, nos.lol, relay.damus.io`
     );
     console.log(`   • Monitor relay health: https://nostr.watch/`);
     console.log(`   • Test individual relays before production use`);
